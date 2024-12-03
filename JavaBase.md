@@ -27,7 +27,8 @@
 * [DateTimeFormatter 格式化时间](#datetimeformatter-格式化时间)
 * [Period 日期间隔](#period-日期间隔)
 * [Duration 时间间隔](#duration-时间间隔)
-* [](#)
+* [Arrays 数组工具类](#arrays-数组工具类)
+    * [Arrays 重写sort方法](#arrays-重写sort方法)
 
 <!-- vim-markdown-toc -->
 
@@ -1334,5 +1335,155 @@ public class Test {
     }
 }
 ```
+ 
+## Arrays 数组工具类 
 
-## 
+* **Arrays类：**
+    * Arrays类是一个工具类，用来操作数组
+    * Arrays类中的所有方法都是静态的
+
+* **Arrays类的常用方法：**
+
+| 方法名                                                        | 说明 |
+| ---                                                           | --- |
+| public static String toString(int[] a)                        | 返回指定数组的内容的字符串表示形式 |
+| public static void sort(Object[] a)                           | 对指定的Object类型数组按升序进行排序 |
+| public static void sort(Object[] a, Comparator comparator)     | 对指定的Object类型数组按指定的Comparator进行排序 |
+| public static int[] copyOf(int[] original, int newLength)     | 复制指定的数组，截取或用0填充（如有必要），以使副本具有指定的长度 |
+| public static int binarySearch(int[] a, int key)              | 使用二分搜索算法搜索指定的int类型数组，以获得指定的值 |
+| public static setAll(int[] array, IntUnaryOperator generator) | 使用提供的生成器函数设置指定数组的所有元素 array类型也可以是double[]等 |
+
+**示例：**
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        int[] arr = {10,20,30};
+        // 打印的是数组的地址
+        System.out.println(arr);
+        // 打印数组
+        System.out.println(Arrays.toString(arr));
+        // 复制数组
+        int[] arr1 = Arrays.copyOf(arr, 5); // 复制数组并扩充数组长度
+        System.out.println(Arrays.toString(arr1));
+        // 修改数组并存进去
+        double[] price = {99.8,113,12.5};
+        Arrays.setAll(price, new IntToDoubleFunction() {
+            @Override
+            public double applyAsDouble(int value) {
+                // value = 0,1,2
+                //return price[value]*0.8;
+                // 为了防止精度问题 使用BigDecimal
+                return BigDecimal.valueOf(price[value]).multiply(BigDecimal.valueOf(0.8)).doubleValue();
+            }
+        });
+        System.out.println(Arrays.toString(price));
+        // 对数组排序
+        Arrays.sort(price);
+        System.out.println(Arrays.toString(price));
+
+
+    }
+}
+```
+
+### Arrays 重写sort方法 
+
+* 如果数组中存储的是自定义类型的对象，那么需要重写sort方法
+
+**方法一** 对象实现Comparable接口，并重写compareTo方法
+* **Comparable接口：**
+    * Comparable接口是一个泛型接口，它只有一个方法compareTo
+    * Comparable接口的作用是用来指定对象的排序规则 按照升序排序
+    * 重写compareTo方法时，**返回正数表示当前对象大，返回负数表示当前对象小，返回0表示相等**
+
+**示例：**
+
+**Student 类**
+```Java
+public class Student implements Comparable<Student> {
+    private String name ;
+    private int age;
+    private double height;
+
+    public Student(String name, int age, double height) {
+        this.name = name;
+        this.age = age;
+        this.height = height;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    // 重写toString方法
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", height=" + height +
+                '}';
+    }
+    // 重写compareTo方法
+    @Override
+    public int compareTo(Student o) {
+        return this.age - o.age; // 按照年龄升序排序
+    }
+}
+```
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        Student[] students = new Student[3];
+        students[0] = new Student("张三", 18, 180);
+        students[1] = new Student("李四", 20, 170);
+        students[2] = new Student("王五", 16, 175);
+
+        for (Student student : students) {
+            System.out.println(student);
+        }
+
+        System.out.println("排序后：");
+        java.util.Arrays.sort(students);
+        for (Student student : students) {
+            System.out.println(student);
+        }
+    }
+}
+```
+**方法二** 使用Comparator接口
+
+* **Comparator接口：**
+    * Comparator接口是一个函数式接口，创建匿名内部类对象 
+    * 可以使用lambda表达式来实现Comparator接口
+    * 重写compare方法时，**返回正数表示当前对象大，返回负数表示当前对象小，返回0表示相等**
+
+**示例：** 按照学生对象的身高升序排序
+
+注意： 身高类型是double类型，不能直接使用减法比较大小，需要使用Double.compare方法
+
+
+```Java
+// 使用Lambda表达式 重写Comparator接口的compare方法
+        java.util.Arrays.sort(students, (o1, o2) -> Double.compare(o1.getHeight(),o2.getHeight())); // 按照身高升序排序
+        for (Student student : students) {
+            System.out.println(student);
+        }
+```
+
+
+
+
+
