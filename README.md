@@ -29,6 +29,13 @@
 * [Duration 时间间隔](#duration-时间间隔)
 * [Arrays 数组工具类](#arrays-数组工具类)
     * [Arrays 重写sort方法](#arrays-重写sort方法)
+* [lambda表达式](#lambda表达式)
+* [方法引用](#方法引用)
+    * [静态方法的方法引用](#静态方法的方法引用)
+    * [实例方法的方法引用](#实例方法的方法引用)
+    * [特定类型的方法引用](#特定类型的方法引用)
+    * [构造器的方法引用](#构造器的方法引用)
+* [Regex 正则表达式](#regex-正则表达式)
 
 <!-- vim-markdown-toc -->
 
@@ -1482,6 +1489,337 @@ public class Test {
             System.out.println(student);
         }
 ```
+
+## lambda表达式
+
+* **Lambda表达式：**
+    * Lambda表达式是一个匿名函数，可以理解为一段可以传递的代码
+    * Lambda表达式可以替代只有一个抽象方法的接口 也就是**函数式接口**
+    * Lambda表达式的语法：(参数列表) -> {代码块}
+    * Lambda表达式的参数列表可以省略数据类型，如果只有一个参数，可以省略括号
+    * Lambda表达式的代码块如果只有一行，可以省略大括号和return关键字
+    * Lambda表达式的参数列表和代码块可以省略，但是不能只省略参数列表
+
+**示例：**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        Animal a = () -> System.out.println("dog run");
+        a.run();
+        // 不是所有抽象方法都可以使用Lambda表达式 必须是函数式接口
+//        Bird b = () -> System.out.println("bird fly"); // 报错
+    }
+}
+
+// 定义一个函数式接口 --> 只有一个抽象方法的接口
+@FunctionalInterface
+interface Animal {
+    void run();
+}
+abstract  class Bird
+{
+    abstract void  fly();
+}
+```
+
+## 方法引用
+
+* **方法引用：**
+    * 方法引用是Lambda表达式的一种简写形式
+    * 当Lambda表达式中的代码只是调用一个方法时，可以使用方法引用
+
+### 静态方法的方法引用
+
+* **静态方法的方法引用：**
+    * 语法：类名::静态方法名
+    * 例如：Student::run
+
+**示例：**
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+//        Animal a = () -> System.out.println("dog run");
+        // 使用静态方法引用进一步简化
+        Animal a = Test::run;
+        a.run();
+    }
+    // 静态方法
+    public static void run() {
+        System.out.println("dog run");
+    }
+}
+  }}
+}
+```
+
+### 实例方法的方法引用
+
+* **实例方法的方法引用：**
+    * 语法：实例对象::实例方法名
+    * 例如：new Motion()::run2
+    * 使用场景：当Lambda表达式中的代码只是调用一个实例方法时，可以使用实例方法引用
+
+**示例：**
+
+**Motion 类**
+
+
+```Java
+public class Motion {
+    public void run2() {
+        System.out.println("dog run");
+    }
+}
+```
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        Motion motion = new Motion();
+        // 使用实例方法引用进一步简化
+        Animal a = motion::run2;
+        a.run();
+    }
+}
+```
+
+### 特定类型的方法引用
+
+* **特定类型的方法引用：**
+    * 语法：特定对象::实例方法名
+    * 例如：String::compareToIgnoreCase
+    * 使用场景：当Lambda表达式中的代码只是调用一个特定对象的实例方法时，可以使用特定类型的方法引用
+
+**示例：**
+
+**Test 类**
+
+
+```Java
+public class Test3 {
+    public static void main(String[] args) {
+        String[] name = {"liu", "zhang", "wang", "zhao","Liu", "Zhang", "Wang", "Zhao"};
+        // 不区分字母大小写排序
+        // compareToIgnoreCase() 比较两个字符串并忽略大小写 是String类的方法
+//        Arrays.sort(name, (o1,o2) -> o1.compareToIgnoreCase(o2) );
+        // 特定方法引用
+        Arrays.sort(name,String::compareToIgnoreCase);
+        System.out.println(Arrays.toString(name));
+    }
+}
+```
+
+### 构造器的方法引用
+
+* **构造器的方法引用：**
+    * 语法：类名::new
+    * 例如：Student::new
+    * 使用场景：当Lambda表达式中的代码只是调用一个构造方法时，可以使用构造器的方法引用
+
+**示例：**
+
+**Student 类**
+
+
+```Java
+class Student {
+    private String name ;
+    private int age;
+    private double height;
+
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public Student(String name, int age, double height) {
+        this.name = name;
+        this.age = age;
+        this.height = height;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    // 重写toString方法
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", height=" + height +
+                '}';
+    }
+}
+```
+
+**StudentBuilder 接口**
+
+
+```Java
+@FunctionalInterface
+interface StudentBuilder {
+    Student build(String name, int age, double height);
+}
+```
+
+**Test 类**
+
+
+```Java
+public class Test4 {
+    public static void main(String[] args) {
+//        StudentBuilder sb = new StudentBuilder() {
+//            @Override
+//            public Student build(String name, int age, double height) {
+//                return new Student(name, age, height);
+//            }
+//        };
+        // 构造器引用
+        StudentBuilder sb = Student::new;
+        System.out.println(sb.build("liu", 18, 1.78));
+    }
+}
+
+```
+
+## Regex 正则表达式
+
+* **正则表达式：**
+    * 正则表达式是一个用来描述或者匹配一系列符合某个句法规则的字符串的单个字符串
+    * 正则表达式是一种通用的字符串表达框架
+    * 在Java中，使用`String`类的``matches``方法来判断字符串是否匹配正则表达式
+    * 在Java中，使用`Pattern`类和`Matcher`类来实现正则表达式的匹配
+
+**正则表达式的语法：**
+
+| 符号 | 说明 |
+| --- | --- |
+| . | 匹配任意字符 |
+| \d | 匹配数字：[0-9] |
+| \D | 匹配非数字：[^0-9] |
+| \s | 匹配空白字符：[ \t\n\x0B\f\r] |
+| \S | 匹配非空白字符：[^\s] |
+| \w | 匹配单词字符：[a-zA-Z_0-9] |
+| \W | 匹配非单词字符：[^\w] |
+| \b | 匹配单词边界 |
+| \B | 匹配非单词边界 |
+| ^ | 取反 |
+| [abc] | 匹配a、b或c |
+| [^abc] | 匹配除了a、b和c以外的任意字符 |
+| \| | 或者 |
+| ? | 匹配0次或1次 |
+| * | 匹配0次或多次 |
+| + | 匹配1次或多次 |
+| {n} | 匹配n次 |
+| {n,} | 匹配至少n次 |
+| {n,m} | 匹配n到m次 |
+| () | 分组 |
+| \ | 转义字符 |
+| && | 逻辑与 |
+| \|\| | 逻辑或 |
+
+**示例：** 
+
+1.判断一个字符串是否是一个合法的手机号码
+
+* **要求：** 11位数字，以1开头
+
+2.判断一个字符串是否是一个合法的邮箱地址
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        String phone = "13812345678";
+        // 正则表达式
+        String regex = "1[0-9]{10}";
+        System.out.println(phone.matches(regex));
+
+        String email = "1323sdd@qq.com";
+        String email2 = "1323sdd@qqcom";
+
+        String regex2 = "\\w{2,}@\\w{2,20}(\\.\\w{2,3}){1,2}";
+        System.out.println(email.matches(regex2));
+        System.out.println(email2.matches(regex2));
+    }
+}
+```
+
+3。从字符串中爬取出手机、邮箱、座机、400电话信息
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        String str = "我的手机号是13812345678，座机号是010-12345678，邮箱是2wewe@qq.com，400电话是400-123-5678,400-3233232";
+
+//        1. 定义爬取规则
+        String regex = "1[0-9]{10}|\\d{3,4}-\\d{7,8}|\\w{2,}@\\w{2,20}(\\.\\w{2,3}){1,2}|400-?\\d{3,7}-?\\d{3,7}";
+
+//        2. 把正则表达式编译成Pattern对象
+        Pattern pattern = Pattern.compile(regex);
+
+//        3. 通过Pattern对象得到Matcher对象
+        Matcher matcher = pattern.matcher(str);
+
+//        4. 定义循环，查找符合规则的字符串
+        while (matcher.find()) {
+            String rs = matcher.group(); // 获取找到的字符串
+            System.out.println(rs);
+        }
+    }
+}
+```
+
+4. 字符串的分割与替换
+
+* **split方法：**
+    * split方法是String类的方法，用来分割字符串
+    * split方法的参数是一个正则表达式，可以使用正则表达式来分割字符串
+
+* **replaceAll方法：**
+    * replaceAll方法是String类的方法，用来替换字符串
+    * replaceAll方法的参数是一个正则表达式，可以使用正则表达式来替换字符串
+
+**Test 类**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        // 将字符全部替换为-
+        String s1 = "哈哈2323嘻嘻dsa嘿嘿";
+        System.out.println(s1.replaceAll("\\w+", "-"));
+
+        // 将重复的字符优化
+        String s2 = "我我我我喜欢编编编程程程";
+        System.out.println(s2.replaceAll("(.)\\1+", "$1"));
+        // 将字符串按照字符分割
+        String[] str =  s1.split("\\w+");
+        System.out.println(Arrays.toString(str));
+    }
+}
+
+```
+
+
 
 
 
