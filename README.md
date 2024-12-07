@@ -36,6 +36,25 @@
     * [特定类型的方法引用](#特定类型的方法引用)
     * [构造器的方法引用](#构造器的方法引用)
 * [Regex 正则表达式](#regex-正则表达式)
+* [Exception 异常](#exception-异常)
+    * [自定义异常](#自定义异常)
+    * [捕获异常后处理方式](#捕获异常后处理方式)
+* [Collection 集合](#collection-集合)
+    * [List 集合](#list-集合)
+    * [Set 集合](#set-集合)
+        * [HashSet](#hashset)
+            * [**红黑树**](#红黑树)
+        * [LinkedHashSet](#linkedhashset)
+        * [TreeSet](#treeset)
+    * [并发修改异常](#并发修改异常)
+* [Collections 集合工具类](#collections-集合工具类)
+* [Map 集合](#map-集合)
+    * [map遍历](#map遍历)
+    * [HashMap](#hashmap)
+    * [LinkedHashMap 与 TreeMap](#linkedhashmap-与-treemap)
+* [Stream 流](#stream-流)
+    * [Stream流的创建](#stream流的创建)
+    * [* **Stream流的常用方法：**](#-stream流的常用方法)
 
 <!-- vim-markdown-toc -->
 
@@ -1819,6 +1838,624 @@ public class Test {
 
 ```
 
+## Exception 异常
+
+* **异常：**
+    * 异常是程序在执行过程中遇到的不正常情况
+    * 异常是Java程序的一部分，用来处理程序运行过程中出现的错误
+    * 异常处理是程序设计中的一种重要机制，可以保证程序的稳定性和健壮性
+    * 异常分为两种：**编译时异常**和**运行时异常**
+
+* **编译时异常**
+    * 编译时异常是程序在编译阶段会出现的异常，如果程序中抛出了编译时异常，那么程序在编译时会报错 例如：解释器异常
+
+* **运行时异常**
+    * 运行时异常是程序在运行阶段会出现的异常，如果程序中抛出了运行时异常，那么程序在编译时不会报错，但是在运行时会抛出异常 例如：数组访问越界 
+
+
+* **异常处理：**
+    * 异常处理是程序设计中的一种重要机制，可以保证程序的稳定性和健壮性
+    * 异常处理的方式有两种：**捕获异常**和**抛出异常**
+
+* **捕获异常**
+    * 捕获异常是指在程序中捕获并处理异常
+    * 捕获异常的方式有两种：**try-catch**和**try-catch-finally**
+
+**示例：**
+
+**Test**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // ctrl + alt + t --> try catch
+        try {
+            String str = "2022-01-01 11:11";
+            LocalDateTime a = LocalDateTime.parse(str, dtf);
+
+            System.out.println(a);
+        } catch (Exception e) {
+            System.out.println("解析异常");
+            e.printStackTrace();
+        }
+    }
+}
+
+```
+
+* **抛出异常**
+    * 抛出异常是指在程序中抛出异常
+    * 抛出异常的方式是使用**throw**关键字
+
+**示例：**
+
+**Test**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) throws ParseException{
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // ctrl + alt + t --> try catch
+        String str = "2022-01-01 11:11";
+        LocalDateTime a = LocalDateTime.parse(str, dtf);
+
+        System.out.println(a);
+}
+    
+```
+
+###  自定义异常
+
+* **自定义异常：**
+    * 自定义异常是指用户自己定义的异常
+    * 自定义异常类继承自Exception类（**编译时异常**）或者RuntimeException类（**运行时异常**）
+    * 通常异常严重程度较高时，继承Exception类；异常严重程度较低时，继承RuntimeException类
+    * ``throw  new 异常类对象("异常信息")")`` 抛出异常对象
+    * `throws 异常类` 用在方法上，抛出方法内部的异常给上一级， **自定义编译时异常需要使用**
+  
+**示例：**
+
+
+```Java
+public class DiyExceptionTest {
+
+    public static void main(String[] args) {
+//        setAge(300);
+//         使用try-catch捕获异常 否则程序会终止
+        try {
+            setAge(300);
+        } catch (AgeIllegalRuntimeException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            setAge2(300);
+        } catch (AgeIllegalException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("程序继续执行");
+    }
+    // 自定义运行时异常
+    public static void setAge(int age) {
+        if (age < 0 || age > 200) {
+            System.out.println("抛出运行时异常, 年龄不合法");
+            throw new AgeIllegalRuntimeException("年龄不合法");
+
+        }
+        System.out.println("年龄为：" + age);
+
+    }
+
+    // 自定义编译时异常
+    public static void setAge2(int age) throws AgeIllegalException
+    {
+        if (age < 0 || age > 200) {
+            System.out.println("抛出编译时异常, 年龄不合法");
+            throw new AgeIllegalException("年龄不合法");
+        }
+        else {
+            System.out.println("年龄为：" + age);
+        }
+    }
+}
+
+```
+
+### 捕获异常后处理方式
+
+* **捕获异常后处理方式：**
+    * 记录异常并响应合适的信息给用户
+    * 尝试重新修复
+
+1.  **记录异常并响应合适的信息给用户**
+**示例：**
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // ctrl + alt + t --> try catch
+        try {
+            String str = "2022-01-01 11:11";
+            LocalDateTime a = LocalDateTime.parse(str, dtf);
+
+            System.out.println(a);
+        } catch (Exception e) {
+            System.out.println("解析异常");
+            e.printStackTrace();
+```
+
+2. **尝试重新修复**
+
+**示例：**
+
+* 用户输入价格，如果价格<0，提示价格不能为负数，重新输入
+* 如果价格不是数字，则为异常，尝试重新修复
+
+
+
+```Java
+public class ExceptionRepairTest {
+    public static void main(String[] args) {
+        while (true) {
+            try {
+                System.out.println(getMoney());
+                break;
+            } catch (Exception e) {
+                System.out.println("输入金额格式有误，请重新输入");
+            }
+        }
+    }
+
+    public static double getMoney() {
+        while (true) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("请输入金额：");
+            double money = scanner.nextDouble();
+            if (money < 0) {
+                System.out.println("金额不能为负数");
+            } else
+                return money;
+        }
+    }
+}
+```
+
+## Collection 集合
+
+* **集合：**
+
+    * 集合是Java中的一种容器，可以用来存储多个数据
+    * 集合是一个接口，Java中提供了很多集合类，如List、Set、Map等
+    * 集合类的特点是可以动态增长和缩减
+
+* **Collection接口：**
+
+    * Collection接口是Java集合框架中的根接口，它是单列集合类的父接口，**它规定的方法是全部单列集合都会继承的**.
+    * Collection接口中定义了集合类的基本操作，如添加、删除、遍历等
+
+* **Collection接口的常用方法：**
+
+| 方法名                                   | 说明 |
+| ---                                      | --- |
+| public boolean add(E e)                  | 添加元素 |
+| public boolean remove(Object o)          | 删除元素 |
+| public void clear()                      | 清空集合 |
+| public boolean contains(Object o)        | 判断集合中是否包含指定元素 |
+| public boolean isEmpty()                 | 判断集合是否为空 |
+| public int size()                        | 获取集合中元素的个数 |
+| public Object[] toArray()                | 将集合转换为数组 |
+
+**Collection 遍历**
+
+1. **增强for** `for(元素类型 变量名 : 集合对象) { }`
+
+2. **lambda表达式** `集合对象.forEach(元素 -> { })`
+    * 如果是遍历输出，可以使用方法引用 `集合对象.forEach(System.out::println)`
+    
+### List 集合
+
+* **List集合：**
+    * ``List``集合是``Collection``接口的子接口，List集合中的元素是有序的，且可以重复
+    * ``List``集合中的元素可以通过索引来访问，索引从0开始
+    * ``List``集合中的元素可以根据需要动态增长和缩减
+
+* **List接口有两个常用的实现类：**
+    * ``ArrayList``：底层是**数组**结构，查询快，增删慢
+    * ``LinkedList``：底层是**链表**结构，查询慢，增删快
+        * 利用`LinkedList`的`addFirst`和`addLast`方法可以实现栈和队列`Stack`和`Queue`
+        * ``addFirst`` 等价于`Push`
+        * ``removeFirst`` 等价于`Pop`
+        * ``removeLast`` 等价于`Poll`
+
+
+### Set 集合
+
+* **Set集合：**
+    * ``Set``集合是``Collection``接口的子接口，Set集合中的元素是无序的，且不可以重复、没有索引
+    * ``Set``集合中的元素是不能重复的，如果向Set集合中添加重复的元素，Set集合会自动去除重复的元素（**Hash**）
+
+* **Set接口有三个常用的实现类：**
+
+    * ``HashSet``：无序、不重复、无索引
+    * ``LinkedHashSet``：**有序**、不重复、无索引
+    * ``TreeSet``：**排序**、不重复、无索引
+
+#### HashSet
+
+* **HashSet：**
+    * 实现方式： 数组 + 链表 + 红黑树
+    * Java中每个对象都有一个hashCode值，hashCode值是一个整数，可以通过对象的hashCode方法获取
+    * HashSet集合会根据元素的hashCode值来决定元素在集合中的存储位置
+    * 不同的对象可能有相同的hashCode值，这种现象称为**哈希冲突**
+
+
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20241206153456.png)
+
+* 如果数组超过长度×0.75，数组会扩容为原来的2倍
+
+**如果数组中的链表长度超过8，数组长度超过64，链表会转换为红黑树**
+
+##### **红黑树**
+
+* 红黑树是一种**自平衡的二叉查找树**
+    * 红黑树的每个节点上都有存储位表示节点的颜色，可以是红色或黑色
+    * 红黑树的特性：
+        * 每个节点要么是红色，要么是黑色
+        * 根节点是黑色
+        * 每个叶子节点（NIL节点，空节点）是黑色的
+        * 不能有相邻的两个红色节点
+        * 从任一节点到其每个叶子的所有路径都包含相同数目的黑色节点
+
+[平衡树的写法](https://www.acwing.com/activity/content/code/content/8744603/)
+
+* **HashSet集合默认不能对自定义对象去重，需要重写hashCode和equals方法** ：否则默认按照地址去重
+
+**示例：**
+
+**Test 类**
+```Java
+package com.liu.HashSet;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<Student> student = new HashSet<>();
+
+        Student s1 = new Student("张三", 18);
+        Student s2 = new Student("李四", 20);
+        Student s3 = new Student("王五", 16);
+        Student s4 = new Student("李四", 20);
+        student.add(s1);
+        student.add(s2);
+        student.add(s3);
+        student.add(s2);
+        student.add(s4);
+
+
+        System.out.println(s1.hashCode());
+        System.out.println(s2.hashCode());
+        System.out.println(s4.hashCode());
+
+        for (Student student1 : student) {
+            System.out.println(student1);
+        }
+    }
+}
+
+```
+**Student 类**
+
+需要重写hashCode和equals和toString方法
+
+
+```Java
+package com.liu.HashSet;
+
+import java.util.Objects;
+
+public class Student
+{
+    private String name ;
+    private int age;
+
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return age == student.age && Objects.equals(name, student.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age);
+    }
+}
+
+
+```
+
+#### LinkedHashSet
+
+* **LinkedHashSet：**
+    * LinkedHashSet是HashSet的子类，LinkedHashSet集合中的元素是有序的，且不可以重复
+    * LinkedHashSet集合中的元素是按照添加的顺序进行排序的
+
+**实现原理**：底层是**哈希表**和**链表**实现的
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412061711806.png)
+
+* **优点**：有序 
+* **缺点**：浪费内存
+
+#### TreeSet
+
+* **TreeSet：**
+    * TreeSet是Set接口的实现类，TreeSet集合中的元素是有序的，且不可以重复
+    * TreeSet集合中的元素是按照**红黑树**进行升序排序的
+    * TreeSet集合中的自定义对象元素需要实现``Comparable``接口，重写``compareTo``方法 或者 重写``comparator``匿名内部类
+
+* **注意**：如果自定义对象**只按照年龄排序**，年龄相同的对象只能添加一个，因为TreeSet会认为是重复的对象
+
+**示例：**
+
+**Student 类**
+
+实现Comparable接口，重写compareTo方法
+```Java
+public class Student implements Comparable<Student>
+{
+    private String name ;
+    private int age;
+
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return age == student.age && Objects.equals(name, student.name);
+    }
+
+    @Override
+    public int compareTo(Student o) {
+        return this.age - o.age;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age);
+    }
+}
+
+
+```
+**Test 类**
+
+```Java
+public class TreeSetTest {
+    public static void main(String[] args) {
+        Set<Student> student = new TreeSet<>();
+
+        Student s1 = new Student("张三", 18);
+        Student s2 = new Student("李四", 20);
+        Student s3 = new Student("王五", 16);
+        Student s4 = new Student("李四", 20);
+        Student s5 = new Student("嘻嘻", 20);   // 会被去重
+        student.add(s1);
+        student.add(s2);
+        student.add(s3);
+        student.add(s2);
+        student.add(s4);
+        student.add(s5);
+
+
+        System.out.println(s1.hashCode());
+        System.out.println(s2.hashCode());
+        System.out.println(s4.hashCode());
+
+        System.out.println(student);
+        // 输出： [Student{name='王五', age=16}, Student{name='张三', age=18}, Student{name='李四', age=20}]
+    }
+
+}
+```
+### 并发修改异常
+
+* **并发修改异常：**
+    * 并发修改异常是指在使用迭代器遍历集合的过程中，对集合进行了增删操作，导致迭代器遍历集合时，集合的结构发生了变化，抛出异常
+    * 解决方法：使用迭代器的remove方法删除元素,而不是集合的remove方法
+
+
+```Java
+public class ConcurrentModificationExceptionTest {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("张三");
+        list.add("李四");
+        list.add("王五");
+
+        Iterator<String> it = list.iterator();
+        while (it.hasNext()) {
+            String s = it.next();
+            if (s.equals("李四")) {
+                it.remove(s);
+            }
+        }
+    }
+}
+```
+
+## Collections 集合工具类
+
+* **Collections集合工具类：**
+    * Collections是一个工具类，提供了一系列静态方法，用于对集合进行操作
+    * Collections中的方法都是静态方法，可以直接通过类名调用
+    * Collections中的方法都是对List、Set、Map等集合进行操作的
+
+* **Collections集合工具类的常用方法：**
+
+| 方法名                                   | 说明 |
+| ---                                      | --- |
+| public static <T> void sort(List<T> list)                  | 对List集合中的元素进行排序 |
+| public static <T> void shuffle(List<T> list)               | 对List集合中的元素进行随机排序 |
+| public static <T> void reverse(List<T> list)               | 对List集合中的元素进行逆序 |
+| public static <T> void fill(List<? super T> list, T obj)   | 使用指定元素替换List集合中的所有元素 |
+| public static <T> void copy(List<? super T> dest, List<? extends T> src) | 将src集合中的元素复制到dest集合中 |
+| public static <T> boolean replaceAll(List<T> list, T oldVal, T newVal) | 使用新值替换List集合中的所有指定旧值 |
+| public static <T> boolean addAll(Collection<? super T> c, T... elements) | 将所有指定元素添加到指定集合中 |
+
+## Map 集合
+
+* **Map集合：**
+    * Map集合是一个**键值对集合**，每个元素包含一个键对象和一个值对象
+    * Map集合中的键是唯一的，值可以重复
+    * Map集合中的键和值都可以是任意类型的对象
+    * Map集合中的键是无序的，值是有序的
+
+* **Map接口的常用方法：**
+
+| 方法名                                   | 说明 |
+| ---                                      | --- |
+| public V put(K key, V value)              | 将指定的值与指定的键关联 |
+| public V get(Object key)                  | 返回指定键所映射的值 |
+| public V remove(Object key)               | 删除指定键所映射的值 |
+| public boolean containsKey(Object key)    | 判断集合中是否包含指定的键 |
+| public boolean containsValue(Object value)| 判断集合中是否包含指定的值 |
+| public int size()                         | 返回集合中键值对的个数 |
+| public Set<K> keySet()                    | 返回集合中所有键的Set集合 |
+| public Collection<V> values()             | 返回集合中所有值的Collection集合 |
+| public Set<Map.Entry<K, V>> entrySet()    | 返回集合中所有键值对的Set集合 |
+| public void clear()                       | 清空集合 |
+
+### map遍历
+
+1. **增强for** `for(元素类型 变量名 : 集合对象) { }`
+
+2. **lambda表达式** `集合对象.forEach(元素 -> { })`
+    * 如果是遍历输出，可以使用方法引用 `集合对象.forEach(System.out::println)`
+
+3. **entrySet遍历** `Set<Map.Entry<K, V>> entrySet = map.entrySet();`
+
+### HashMap
+
+* **HashMap：**
+    * HashMap是Map接口的一个实现类，HashMap集合中的元素是无序的，且键值对是一一对应的
+    * HashMap集合中的键是唯一的，值可以重复
+    * HashMap集合中的键和值都可以是任意类型的对象
+    * HashMap集合中的键是无序的，值是有序的
+    * HashMap集合中的键是通过hashCode方法计算出来的，可以通过equals方法判断键是否相等
+    * 自定义对象作为键，需要重写hashCode和equals方法
+
+* **HashMap的底层实现：**
+    * HashSet 就是基于HashMap实现的，只取了HashMap的key值
+    * HashMap底层是**数组** + **链表** + **红黑树**实现的
+
+### LinkedHashMap 与 TreeMap
+
+**与HashMap同理**
+
+## Stream 流
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412071554017.png)
+
+* **Stream流：**
+    * Stream流是Java8中的新特性，可以对集合进行**函数式操作**
+    * Stream流可以对集合进行**过滤、映射、排序、聚合**等操作
+    * Stream流的操作分为**中间操作**和**终结操作**
+    * Stream流的操作是**延迟执行**的，只有遇到终结操作时，中间操作才会执行
+
+### Stream流的创建
+
+* **Stream流的创建：**
+    * Stream流的创建有两种方式：**集合创建流**和**数组创建流**
+
+1. **集合创建流** `集合对象.stream()`
+
+2. **数组创建流** `Arrays.stream(数组)`
+    * `Stream.of(数组)`
+    * `Stream.of(元素1, 元素2, 元素3)`
+
+**示例：**
+
+**Test 类**
+
+
+
+```Java
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("张三");
+        list.add("李四");
+        list.add("王五");
+
+        // 集合创建流
+        Stream<String> stream = list.stream();
+        stream.forEach(System.out::println);
+
+        // 数组创建流
+        String[] arr = {"张三", "李四", "王五"};
+        Stream<String> stream1 = Arrays.stream(arr);
+        stream1.forEach(System.out::println);
+
+        // Stream.of创建流
+        Stream<String> stream2 = Stream.of("张三", "李四", "王五");
+        stream2.forEach(System.out::println);
+    }
+}
+```
+
+### * **Stream流的常用方法：**
+
+| 方法名                                   | 说明 |
+| ---                                      | --- |
+| public Stream<T> filter(Predicate<? super T> predicate) | 过滤集合中的元素 |
+| public <R> Stream<R> map(Function<? super T, ? extends R> mapper) | 映射集合中的元素 |
+| public Stream<T> sorted()                 | 对集合中的元素进行排序 |
+| public Stream<T> limit(long maxSize)      | 截取集合中的前N个元素 |
+| public Stream<T> skip(long n)             | 跳过集合中的前N个元素 |
+| public void forEach(Consumer<? super T> action) | 遍历集合中的元素 |
+| public Stream<T> distinct()               | 去除集合中的重复元素 |
+| public long count()                       | 统计集合中的元素个数 |
+| public Optional<T> findFirst()            | 返回集合中的第一个元素 |
+| public Optional<T> findAny()              | 返回集合中的任意一个元素 |
+| public T reduce(T identity, BinaryOperator<T> accumulator) | 对集合中的元素进行聚合操作 |
+| public <R> R collect(Collector<? super T, A, R> collector) | 将集合中的元素收集到一个容器中 |
 
 
 
