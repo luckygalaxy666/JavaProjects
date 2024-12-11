@@ -4,7 +4,6 @@
 <!-- vim-markdown-toc GFM -->
 
 * [override  重写](#override--重写)
-* [多态](#多态)
 * [interface 接口](#interface-接口)
 * [面向接口编程](#面向接口编程)
 * [template 模板设计模式](#template-模板设计模式)
@@ -54,7 +53,35 @@
     * [LinkedHashMap 与 TreeMap](#linkedhashmap-与-treemap)
 * [Stream 流](#stream-流)
     * [Stream流的创建](#stream流的创建)
-    * [* **Stream流的常用方法：**](#-stream流的常用方法)
+    * [**Stream流的常用方法：**](#stream流的常用方法)
+    * [**collect方法的使用**](#collect方法的使用)
+    * [**toArray方法的使用**](#toarray方法的使用)
+* [File 文件](#file-文件)
+* [IO 流](#io-流)
+    * [try-catch-finally](#try-catch-finally)
+    * [try-with-resources](#try-with-resources)
+    * [字符流](#字符流)
+    * [字节缓冲输入输出流](#字节缓冲输入输出流)
+    * [字符缓冲输入输出流](#字符缓冲输入输出流)
+    * [字符输入输出转换流](#字符输入输出转换流)
+    * [打印流](#打印流)
+        * [输出语句重定向](#输出语句重定向)
+    * [数据流](#数据流)
+    * [对象流](#对象流)
+* [Common-IO](#common-io)
+    * [FileUtils](#fileutils)
+    * [IOUtils](#ioutils)
+* [Properties](#properties)
+* [dom4j 解析XMl工具](#dom4j-解析xml工具)
+    * [**Documents**提供的方法：](#documents提供的方法)
+    * [**Element**提供的方法：](#element提供的方法)
+* [日志](#日志)
+    * [Logback 日志框架](#logback-日志框架)
+* [多线程](#多线程)
+    * [第一种方式 继承Thread类](#第一种方式-继承thread类)
+    * [第二种方式 实现Runnable接口](#第二种方式-实现runnable接口)
+    * [第三种方式 实现Callable接口](#第三种方式-实现callable接口)
+    * [Thread 类的常用方法](#thread-类的常用方法)
 
 <!-- vim-markdown-toc -->
 
@@ -68,13 +95,7 @@
     
 利用@Override注解可以检查是否重写成功
 
-**重写toString 方法**
-
-IDEA 可以使用ALt + Insert 选择toString方法 自动生成重载方法
-
-
-## 多态
-
+**重写toString 方法** IDEA 可以使用ALt + Insert 选择toString方法 自动生成重载方法 ## 多态
 * **多态：**
     * **多态是指同一个方法调用，由于对象不同可能会有不同的行为**
     * **多态的前提：**
@@ -2440,24 +2461,746 @@ public class Test {
 }
 ```
 
-### * **Stream流的常用方法：**
+### **Stream流的常用方法：**
+``
+| 方法名                                                                | 说明 |
+| ---                                                                   | --- |
+| public Stream<T> filter(Predicate<? super T> predicate)               | 过滤集合中的元素 |
+| public <R> Stream<R> map(Function<? super T, ? extends R> mapper)     | 映射集合中的元素 |
+| public Stream<T> sorted()                                             | 对集合中的元素进行排序 |
+| public Stream<T> limit(long maxSize)                                  | 截取集合中的前N个元素 |
+| public Stream<T> skip(long n)                                         | 跳过集合中的前N个元素 |
+| public Stream<T> distinct()                                           | 去除集合中的重复元素, 自定义对象需要重写equal和Hashcode方法 |
+| public long count()                                                   | 统计集合中的元素个数 |
+| public Optional<T> findFirst()                                        | 返回集合中的第一个元素 |
+| public Optional<T> findAny()                                          | 返回集合中的任意一个元素 |
+| public T reduce(T identity, BinaryOperator<T> accumulator)            | 对集合中的元素进行聚合操作 |
+| public <R> R collect(Collector<? super T, A, R> collector)            | 将集合中的元素收集到一个容器中  **流只能收集一次**|
+| public Object[] toArray()                                             | 将集合转换为数组 |
+| public void forEach(Consumer<? super T> action)                      | 遍历集合中的元素 |
+| public Stream<T> concat(Stream<? extends T> a, Stream<? extends T> b) | 合并两个流 |
+| public Optional<T> max(Comparator<? super T> comparator)              | 获取最大值 |
+| public Optional<T> min(Comparator<? super T> comparator)              | 获取最小值 |
+
+** 返回值为Stream的方法称为中间操作，返回值不为Stream的方法称为终结操作**
+
+### **collect方法的使用**
+
+**示例：**
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412081738287.png)
+
+* toMap方法 
+    * 第一个参数是key的提取方法
+    * 第二个参数是value的提取方法
+    * 使用前加一个distinct去重
+
+### **toArray方法的使用**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412081741827.png)
+
+**需要转换成特定类型的数组时，需要传入构造器引用**
+    
+## File 文件
+
+* **File类：**
+    * File类是Java中的一个类，用来表示文件或目录
+    * File类可以用来操作文件或目录，如创建、删除、重命名等
+    * File类的对象可以表示文件或目录的路径，可以获取文件或目录的属性
+
+* **File类的常用方法：**
 
 | 方法名                                   | 说明 |
 | ---                                      | --- |
-| public Stream<T> filter(Predicate<? super T> predicate) | 过滤集合中的元素 |
-| public <R> Stream<R> map(Function<? super T, ? extends R> mapper) | 映射集合中的元素 |
-| public Stream<T> sorted()                 | 对集合中的元素进行排序 |
-| public Stream<T> limit(long maxSize)      | 截取集合中的前N个元素 |
-| public Stream<T> skip(long n)             | 跳过集合中的前N个元素 |
-| public void forEach(Consumer<? super T> action) | 遍历集合中的元素 |
-| public Stream<T> distinct()               | 去除集合中的重复元素 |
-| public long count()                       | 统计集合中的元素个数 |
-| public Optional<T> findFirst()            | 返回集合中的第一个元素 |
-| public Optional<T> findAny()              | 返回集合中的任意一个元素 |
-| public T reduce(T identity, BinaryOperator<T> accumulator) | 对集合中的元素进行聚合操作 |
-| public <R> R collect(Collector<? super T, A, R> collector) | 将集合中的元素收集到一个容器中 |
+| File(String pathname)                   | 根据路径名创建File对象 |
+| File(String parent, String child)       | 根据父路径和子路径创建File对象 |
+| File(File parent, String child)         | 根据父File对象和子路径创建File对象 |
+| public boolean exists()                  | 判断文件或目录是否存在 |
+| public boolean isFile()                  | 判断File对象是否是文件 |
+| public boolean isDirectory()             | 判断File对象是否是目录 |
+| public String getName()                  | 获取文件或目录的名称 |
+| public String getPath()                  | 获取文件或目录的路径 |
+| public long length()                     | 获取文件的大小 |
+| public long lastModified()               | 获取文件的最后修改时间 |
+| public boolean createNewFile()           | 创建文件 |
+| public boolean mkdir()                   | 创建一级目录 |
+| public boolean mkdirs()                  | 创建多级目录 |
+| public String[] list()                   | 获取目录中的所有文件或目录的名称 |
+| public File[] listFiles()                | 获取目录中的所有文件或目录的File对象 **包含隐藏文件**|
+| public boolean delete()                  | 删除文件或目录 **只能删除空文件、目录**|
+| public boolean renameTo(File dest)       | 重命名文件或目录 |
+
+ ## 字符集 
+
+* **字符集：**
+    * 字符集是一个字符编码的集合，用来表示字符和字节之间的对应关系
+
+* **常用字符集：**
+    * **GBK**：国标编码，是中国的中文编码标准
+    * **UTF-8**：是一种针对Unicode的可变长度字符编码，是一种多字节编码
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412082033956.png)
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412082038222.png)
 
 
+## IO 流
+
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412091008398.png)
+
+* **IO流：**
+    * IO流是Java中的一种输入输出流，用来处理设备之间的数据传输
+    * IO流是Java中的一个重要的特性，可以用来读写文件、网络通信等
+    * IO流分为**输入流**和**输出流**，输入流用来读取数据，输出流用来写入数据
+    * IO流分为**字节流**和**字符流**，字节流用来处理二进制文件，字符流用来处理文本文件
+
+* **IO流的分类：**
+    * **字节流**：以字节为单位进行读写，适合处理二进制文件
+        * **InputStream**：字节输入流的抽象类
+        * **OutputStream**：字节输出流的抽象类
+    * **字符流**：以字符为单位进行读写，适合处理文本文件
+        * **Reader**：字符输入流的抽象类
+        * **Writer**：字符输出流的抽象类
+
+### try-catch-finally
+
+* **try-catch-finally：**
+    * try-catch-finally是Java中的异常处理机制，用来捕获和处理异常
+    * finally块中的代码无论是否发生异常，都会执行,除非在try块中使用了System.exit(0)终止程序
+    * finally块中的代码通常用来释放资源，如关闭文件、关闭数据库连接等
+    * **不要在finally块中使用return语句，因为finally块中的return语句会覆盖try块中的return语句**
+
+### try-with-resources
+
+* **try-with-resources：**
+    * try-with-resources是Java7中的新特性，用来自动关闭资源
+    * try-with-resources可以自动关闭实现了AutoCloseable接口的资源，如文件、数据库连接等
+    * try-with-resources的语法是在try关键字后面加上一对圆括号，圆括号中定义资源，资源会在try块执行完毕后自动关闭
+
+**示例：**
+
+文件复制案例
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412091524654.png)
+
+### 字符流
+
+* **字符流：**
+    * 字符流是Java中的一种输入输出流，用来处理文本文件
+    * 字符流是Java中的一个重要的特性，可以用来读写文本文件
+    * 字符流分为**字符输入流**和**字符输出流**，字符输入流用来读取文本文件，字符输出流用来写入文本文件
+
+* **字符流的常用类：**
+    * **Reader**：字符输入流的抽象类
+        * **FileReader**：文件字符输入流
+        * **BufferedReader**：缓冲字符输入流
+    * **Writer**：字符输出流的抽象类
+        * **FileWriter**：文件字符输出流
+        * **BufferedWriter**：缓冲字符输出流
+
+| 方法名                                          | 说明 |
+| ---                                             | --- |
+| public int read()                               | 读取单个字符 |
+| public int read(char[] cbuf)                    | 读取字符数组 |
+| public void write(int c)                        | 写入单个字符 |
+| public void write(char[] cbuf)                  | 写入字符数组 |
+| public void write(String str)                   | 写入字符串 |
+| public void write(String str, int off, int len) | 写入字符串的一部分 |
+| public void flush()                             | 刷新流 |
+| public void close()                             | 关闭流 |
+
+### 字节缓冲输入输出流
+
+* **字节缓冲输入输出流：**
+    * 字节缓冲输入输出流是Java中的一种输入输出流，用来处理字节文件
+    * 字节缓冲输入输出流是Java中的一个重要的特性，可以用来读写字节文件
+    * 字节缓冲输入输出流分为**字节缓冲输入流**和**字节缓冲输出流**，字节缓冲输入流用来读取字节文件，字节缓冲输出流用来写入字节文件
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412100915529.png)
+
+
+
+```Java
+public class BufferInputStreamTest1 {
+    public static void main(String[] args) {
+        try (
+                InputStream is = new FileInputStream("oop-prac-file/src/com/liu/buffer/test.txt");
+                OutputStream os = new FileOutputStream("oop-prac-fil e/src/com/liu/buffer/test_copy.txt");
+                InputStream bis = new BufferedInputStream(is);
+                OutputStream bos = new BufferedOutputStream(os);
+        ) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = bis.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+            System.out.println("Copy done!");
+        } catch ( Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 字符缓冲输入输出流
+
+* **字符缓冲输入输出流：**
+    * 字符缓冲输入输出流是Java中的一种输入输出流，用来处理文本文件
+    * 字符缓冲输入输出流是Java中的一个重要的特性，可以用来读写文本文件
+    * 字符缓冲输入输出流分为**字符缓冲输入流**和**字符缓冲输出流**，字符缓冲输入流用来读取文本文件，字符缓冲输出流用来写入文本文件
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412100948825.png)
+
+* 新增方法
+    * public string readLine() 读取一行数据 无数据返回null
+    * public void newLine() 写入一个换行符  
+
+### 字符输入输出转换流
+
+* **字符输入输出转换流：**
+    * 字符输入输出转换流是Java中的一种输入输出流，用来处理文本文件
+    * 字符输入输出转换流分为**字符输入转换流**和**字符输出转换流**，字符输入转换流用来读取文本文件，字符输出转换流用来写入文本文件
+    * 字符输入输出转换流可以指定字符集，用来处理不同编码的文本文件
+
+| 方法名                                          | 说明 |
+| ---                                             | --- |
+| public InputStreamReader(InputStream is, Stromh charset)         | 创建字符输入转换流 |
+| public OutputStreamWriter(OutputStream os, Stromh charset)      | 创建字符输出转换流 |
+
+**示例：**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412101018504.png)
+
+### 打印流
+
+* **打印流：**
+    * 打印流是Java中的一种输出流，用来打印数据到控制台或文件
+
+* **打印流的常用类：**
+    * **PrintStream**：打印字节流
+    * **PrintWriter**：打印字符流
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public PrintStream(File file)                       | 创建打印流 |
+| public PrintStream(String fileName,Charset charset) | 可以指定写出去的字符编码 |
+| public PrintStream(OutputStream,boolean autoFlush)  | 可以指定实现自动刷新 |
+| public void print(数据类型 data)                    | 打印数据 |
+| public void println(数据类型 data)                  | 打印数据并换行 |
+
+**PrintWriter 与 PrintStream 方法一样**
+
+#### 输出语句重定向
+
+* **输出语句重定向：**
+    * 输出语句重定向是Java中的一种技术，用来将输出语句重定向到文件
+    * 输出语句重定向可以将System.out.println输出的内容重定向到文件
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static void setOut(PrintStream out)          | 设置标准输出流 |
+
+**示例：** 将输出语句重定向到文件
+
+**Test 类**
+```Java
+public class test {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+        System.out.println("Hello, World!");
+        // 重定向到文件
+        try (PrintStream ps = new PrintStream("oop-prac-file/src/com/liu/printstream/test.txt");){
+            System.setOut(ps);
+            System.out.println("Hello, World!");
+            System.out.println("Hello, World!");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+### 数据流 
+
+* **数据流：** ``DataInputStream`` 和 ``DataOutputStream``
+    * 数据流是Java中的一种输入输出流，用来处理基本数据类型和字符串
+    * 可以把特定的数据类型直接写入文件或读取文件
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void writeInt(int v)                         | 写入int数据 |
+| public int readInt()                                | 读取int数据 |
+| public void writeDouble(double v)                   | 写入double数据 |
+| public double readDouble()                          | 读取double数据 |
+| public void writeBoolean(boolean v)                 | 写入boolean数据 |
+| public boolean readBoolean()                        | 读取boolean数据 |
+| public void writeUTF(String v)                      | 写入String数据 |
+| public String readUTF()                             | 读取String数据 |
+
+### 对象流
+
+* **对象流：** ``ObjectInputStream`` 和 ``ObjectOutputStream``
+    * 对象流是Java中的一种输入输出流，用来处理对象
+    * 可以把对象直接写入文件或读取文件
+    * 对象序列化用来将对象转换为字节序列，对象反序列化用来将字节序列转换为对象
+    * 需要实现``Serializable``接口,才能序列化
+    * **``transient``修饰的属性不会被序列化**，用于敏感数据的隐藏
+
+* **如果想一次性序列化多个对象，可以使用集合（ArrayList）存储多个对象，然后序列化集合**
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void writeObject(Object obj)                 | 写入对象 |
+| public Object readObject()                          | 读取对象 |
+
+**示例：**
+
+**User 类**
+```Java
+public class User implements Serializable {
+    public User() {
+    }
+
+    public User(String name, int age, String password) {
+        this.name = name;
+        this.age = age;
+        this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", password='" + password + '\'' +
+                '}';
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    private String name;
+    private int age;
+    private transient String password; // 该数据不需要序列化
+}
+```
+
+**ObjectOutputStreamTest 类**
+```Java
+public class ObjectOutputStreamTest {
+    public static void main(String[] args) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("oop-prac-file/src/com/liu/objectstream/test.txt"));) {
+            User user = new User("liu", 18, "123456");
+            oos.writeObject(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+**ObjectInputStreamTest 类**
+```Java
+public class ObjectInputStreamTest {
+    public static void main(String[] args) {
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("oop-prac-file/src/com/liu/objectstream/test.txt"));){
+            User user = (User) ois.readObject();
+            System.out.println(user);
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        };
+    }
+}
+```
+
+## Common-IO
+
+* **Common-IO：**
+    * Common-IO是Apache的一个开源项目，提供了一系列的IO操作工具类
+    * Common-IO中的工具类可以简化IO操作，提高开发效率
+    * Common-IO中的工具类可以处理文件、流、字节数组等
+
+* **Common-IO的常用工具类：**
+    * **FileUtils**：文件操作工具类
+    * **IOUtils**：流操作工具类
+    * **ByteArrayUtils**：字节数组操作工具类
+
+### FileUtils
+
+* **FileUtils：**
+    * FileUtils是Common-IO中的一个工具类，用来处理文件
+    * FileUtils中的方法可以复制、移动、删除、读取文件等
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static void copyFile(File srcFile, File destFile) | 复制文件 |
+| public static void moveFile(File srcFile, File destFile) | 移动文件 |
+| public static void deleteQuietly(File file)             | 删除文件 |
+| public static List<String> readLines(File file)         | 读取文件内容 |
+| public static void writeStringToFile(File file, String data) | 写入文件内容 |
+| public static void writeLines(File file, List<String> lines) | 写入文件内容 |
+| public statci void deleteDirectory(File directory)      | 删除目录 |
+| public static String readFileToString(File file)        | 读取文件内容 |
+
+### IOUtils
+
+* **IOUtils：**
+    * IOUtils是Common-IO中的一个工具类，用来处理流
+    * IOUtils中的方法可以复制、移动、删除、读取流等
+
+| 方法名                                                                         | 说明 |
+| ---                                                                            | --- |
+| public static void copy(InputStream input, OutputStream output)                | 复制流 |
+| public static void closeQuietly(Closeable closeable)                           | 关闭流 |
+| public static int copy(Reader input, Writer output)                            | 复制字符流 |
+| public static void write(String data, OutputStream output,String charsetName) | 写入数据 |
+
+## Properties
+
+* **Properties：**
+    * Properties是Java中的一个类，用来处理属性文件
+    * Properties是Hashtable的子类，可以用来读取和写入属性文件
+    * Properties中的方法可以读取和写入属性文件
+    * 属性文件是以键值对的形式存储的文件，可以用来存储配置信息
+    * Properties是Map接口的实现类
+
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void load(InputStream in)                     | 读取属性文件 |
+| public void store(OutputStream out, String comments) | 写入属性文件 |
+| public String getProperty(String key)                | 获取属性值 |
+| public String setProperty(String key, String value)  | 设置属性值 |
+| public Set<String> stringPropertyNames()             | 获取所有属性名 |
+
+**示例：**
+
+读取配置文件
+
+**Test 类**
+```Java
+public class ReadTest {
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileReader("oop-prac-properties/src/com/liu/properties/test.properties"));
+            // 输出properties
+            System.out.println(properties);
+
+            // 根据key获取value
+            System.out.println(properties.getProperty("张三"));
+
+            // 遍历properties
+            properties.forEach((k,v) -> {
+                System.out.println(k + " = " + v);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+写入配置文件
+
+**Test 类**
+```Java
+public class WriteTest {
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        properties.setProperty("张三", "18");
+        properties.setProperty("李四", "20");
+        properties.setProperty("王五", "16");
+
+        try {
+            properties.store(new FileWriter("oop-prac-properties/src/com/liu/properties/test.properties"), "test");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+## dom4j 解析XMl工具
+
+* **dom4j：**
+    * dom4j是一个Java中的XML解析工具，用来解析XML文件
+    * dom4j可以解析XML文件，获取XML文件中的元素、属性、文本等
+    * dom4j可以创建XML文件，生成XML文件中的元素、属性、文本等
+
+* **dom4j的常用类：**
+    * **Document**：XML文档对象
+    * **Element**：XML元素对象
+    * **Attribute**：XML属性对象
+    * **Text**：XML文本对象
+
+### **Documents**提供的方法：
+
+| 方法名                                      | 说明 |
+| ---                                         | --- |
+| public static Document read(InputStream in) | 读取XML文件 |
+| public static Document read(Reader reader)  | 读取XML文件 |
+| public static Document read(File file)      | 读取XML文件 |
+
+### **Element**提供的方法：
+
+| 方法名                          | 说明 |
+| ---                             | --- |
+| public Element getRootElement() | 获取根元素 |
+| public List<Element> elements() | 获取所有子元素 |
+| public Element element(String name) | 获取指定名称的子元素 |
+| public List<Attribute> attributes() | 获取所有属性 |
+| public Attribute attribute(String name) | 获取指定名称的属性 |
+| public String getText() | 获取文本内容 |
+| public String elementText(String name) | 获取指定名称的子元素的文本内容 |
+| public String getName () | 获取元素名称 |
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111246408.png)
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111244957.png)
+
+## 日志
+
+* **日志：**
+    * 日志是Java中的一个重要的特性，用来记录程序运行时的信息
+    * 日志可以记录程序运行时的异常、错误、警告等信息
+    * 日志可以用来调试程序、分析程序运行时的问题
+    * Java中的日志有很多种，如JDK自带的日志、Log4j、Logback等
+
+* **日志的级别：** 从低到高
+
+| 日志级别       | 说明 |
+| ---            | --- |
+| trace          | 跟踪信息 |
+| debug          | 调试信息 |
+| info           | 输出重要的运行信息，数据连接、网络链接、IO操作等 |
+| warn           | 警告信息，程序可以正常运行，但是可能存在潜在的问题 |
+| error          | 错误信息，程序出现异常 |
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111543353.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111439703.png)
+
+### Logback 日志框架
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111442930.png)
+
+**示例：**
+
+写日志之前，要先配置logback.xml文件，以及引入logback依赖
+
+**日志会输出到控制台和文件中**
+ 
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111522093.png)
+
+**Test 类**
+```Java
+public class LogTest {
+    public static final Logger logger = LoggerFactory.getLogger("LogBackTest");
+    public static void main(String[] args) {
+
+        try {
+            logger.info("程序启动");
+            divider(10,2);
+            logger.info("程序正常运行");
+        } catch (Exception e) {
+            logger.error("程序异常");
+            throw new RuntimeException(e);
+        }
+    }
+    public static void divider(int a,int b)
+    {
+        logger.debug("参数a:"+a); ;
+        logger.debug("参数b:"+b);
+        int c = a/b;
+        logger.info("结果c:"+c);
+    }
+}
+```
+
+**日志写入结果** ：会持续更新
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111523450.png)
+
+## 多线程
+
+* **多线程：**
+    * 多线程是Java中的一个重要的特性，可以同时执行多个线程
+    * 多线程可以提高程序的运行效率，提高程序的响应速度
+    * 多线程可以用来处理耗时的操作，如网络通信、文件读写等
+    * 多线程可以用来处理并发问题
+
+### 第一种方式 继承Thread类
+
+* **继承Thread类：**
+    * 继承Thread类是Java中创建线程的一种方式
+    * 继承Thread类需要重写run方法，run方法中是线程的执行体
+    * 继承Thread类创建的线程可以直接调用start方法启动线程
+
+**示例：**
+
+**MyThread 类**
+```Java
+public class MyThread  extends Thread{
+    @Override
+    public void run() {
+        for(int i = 1;i<=5;i++)
+        {
+            System.out.println("子线程MyThread第" + i + "次执行！");
+        }
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        MyThread myThread = new MyThread();
+        myThread.start();
+        for(int i = 1;i<=5;i++)
+        {
+            System.out.println("主线程第" + i + "次执行！");
+        }
+    }
+}
+```
+**结果每次执行结果不一定相同，因为线程执行是异步的**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111602898.png)
+
+### 第二种方式 实现Runnable接口
+
+* **实现Runnable接口：**
+    * 实现Runnable接口是Java中创建线程的一种方式
+    * 实现Runnable接口需要重写run方法，run方法中是线程的执行体
+    * 实现Runnable接口创建的线程需要创建Thread对象，然后将Runnable对象作为参数传递给Thread对象
+
+**示例：**
+
+**MyRunnable 类**
+```Java
+public class MyRunnable implements Runnable{
+    @Override
+    public void run() {
+        for(int i = 1;i<=5;i++)
+        {
+            System.out.println("子线程MyRunnable第" + i + "次执行！");
+        }
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        MyRunnable myRunnable = new MyRunnable();
+        Thread thread = new Thread(myRunnable);
+        thread.start();
+        for(int i = 1;i<=5;i++)
+        {
+            System.out.println("主线程第" + i + "次执行！");
+        }
+    }
+}
+```
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111613273.png)
+
+### 第三种方式 实现Callable接口
+
+* **实现Callable接口：**
+    * 实现Callable接口是Java中创建线程的一种方式
+    * 实现Callable接口需要重写call方法，call方法中是线程的执行体
+    * 实现Callable接口创建的线程需要创建FutureTask对象，然后将Callable对象作为参数传递给FutureTask对象，再将FutureTask对象作为参数传递给Thread对象
+    * 实现Callable接口创建的线程**可以使用``FutureTask``的``get()``方法获取线程的执行结果**
+
+**示例：**
+
+**MyCallable 类**
+```Java
+public class MyCallable implements Callable<String> {
+    private int n;
+    public MyCallable(int n) {
+        this.n = n;
+    }
+
+
+    @Override
+    public String call() throws Exception {
+        // 计算1 - n 的 和
+        int rs = 0;
+        for (int i = 1; i <= n; i++) {
+            rs += i;
+        }
+        return "从1 " + n + " 的和为：" + rs;
+    }
+}
+```
+
+**Test 类**
+```Java
+public class ThreadTest3 {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        // 创建Callable接口实现类对象
+        Callable mycallable = new MyCallable(100);
+        // 把Callable接口实现类对象包装成FutureTask对象
+
+        FutureTask<String> f1 = new FutureTask<String>(mycallable);
+        new Thread(f1).start();
+
+
+        Callable mycallable2 = new MyCallable(200);
+        // 把Callable接口实现类对象包装成FutureTask对象
+
+        FutureTask<String> f2 = new FutureTask<String>(mycallable2);
+        new Thread(f2).start();
+        String rs1 = f1.get();
+        System.out.println(rs1);
+        String rs2 = f2.get();
+        System.out.println(rs2);
+
+    }
+}
+```
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111705920.png)
+
+### Thread 类的常用方法
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void start()                                 | 启动线程 |
+| public void run()                                   | 线程的执行体 |
+| public static void sleep(long millis)               | 线程休眠 |
+| public final void join()                            | 等待线程终止 |
+| public final void setPriority(int newPriority)      | 设置线程的优先级 |
+| public final void setName(String name)              | 设置线程的名称 |
+| public final String getName()                       | 获取线程的名称 |
+| public static Thread currentThread()                | 获取当前线程 |
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111715468.png)
 
 
 
