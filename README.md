@@ -82,6 +82,14 @@
     * [第二种方式 实现Runnable接口](#第二种方式-实现runnable接口)
     * [第三种方式 实现Callable接口](#第三种方式-实现callable接口)
     * [Thread 类的常用方法](#thread-类的常用方法)
+    * [线程安全问题](#线程安全问题)
+        * [同步化方法](#同步化方法)
+        * [同步化代码块](#同步化代码块)
+        * [lock 锁](#lock-锁)
+    * [线程通信](#线程通信)
+* [线程池](#线程池)
+    * [ThreadPoolExecutor 构造器](#threadpoolexecutor-构造器)
+    * [ExecutorSerive 线程池的常用方法](#executorserive-线程池的常用方法)
 
 <!-- vim-markdown-toc -->
 
@@ -3202,6 +3210,324 @@ public class ThreadTest3 {
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111715468.png)
 
+### 线程安全问题
 
+* **线程安全问题：**
+    * 线程安全问题是多线程编程中的一个重要问题，需要特别注意
+    * 线程安全问题是指多个线程同时访问共享资源时可能出现的问题
+    * 线程安全问题可能导致程序出现异常、数据丢失等问题
+    * 线程安全问题可以通过加锁、使用线程安全的集合等方式解决
+
+**示例：**
+
+小明和小红同时在同一个账户中取钱，账户余额可能为负数
+
+**Account 类**
+```Java
+public class Account {
+    private double money;
+
+    public Account() {
+    }
+
+    public Account(double money) {
+        this.money = money;
+    }
+
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
+
+    public void drawMoney(int i) {
+            if (money < i) {
+                System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+                return;
+            }
+            System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+            money -= i;
+            System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+}
+
+```
+
+**DrawThread 类**
+```Java
+public class DrawThread extends Thread{
+
+    private Account account;
+
+    public DrawThread(Account account,String name) {
+        super(name);
+        this.account = account;
+    }
+
+    @Override
+    public void run() {
+        account.drawMoney(100000);
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        Account acc = new Account(100000);
+        new DrawThread(acc,"小明").start();
+        new DrawThread(acc,"小红").start();
+
+    }
+}
+```
+
+**结果：**
+```Java
+小明取款100000元
+小红取款100000元
+小明取款成功，余额0.0元
+小红取款成功，余额-100000.0元
+```
+
+**解决方法：**
+
+* **加锁：**
+    * 加锁是解决线程安全问题的一种常用方式
+    * 加锁可以保证同一时刻只有一个线程访问共享资源
+    * 加锁可以使用synchronized关键字实现
+
+#### 同步化方法
+
+**Account 类**
+```Java
+public synchronized void drawMoney(int i) {
+            if (money < i) {
+                System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+                return;
+            }
+            System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+            money -= i;
+            System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+```
+
+#### 同步化代码块
+
+**Account 类**
+```Java
+public void drawMoney(int i) {
+    synchronized (this) {
+        if (money < i) {
+            System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+            return;
+        }
+        System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+        money -= i;
+        System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+}
+```
+
+#### lock 锁
+
+需要使用try-catch-finally 释放锁
+
+**Account 类**
+```Java
+public void drawMoney(int i) {
+    lock.lock();
+    try {
+        if (money < i) {
+            System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+            return;
+        }
+        System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+        money -= i;
+        System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+### 线程通信
+
+* **线程通信：**
+    * 线程通信是多线程编程中的一个重要问题，需要特别注意
+    * 线程通信是指多个线程之间的协作，通过协作可以实现线程之间的数据交换
+    * 线程通信可以通过wait、notify、notifyAll等方法实现
+
+**示例：**
+有三个厨师和两个吃货，厨师每次做一个汉堡，吃货每次吃一个汉堡，当汉堡数量为0时，厨师开始做汉堡，吃货等待，当汉堡数量为1时，吃货开始吃汉堡，厨师等待
+
+**Desk 类**
+```Java
+public class Desk {
+    private List&lt;String&gt; list = new ArrayList&lt;&gt;();
+
+    // 放1个包子的方法
+    // 厨师1 厨师2 厨师3
+    public synchronized void put() {
+        try {
+            String name = Thread.currentThread().getName();
+            // 判断是否有包子。
+            if(list.size() == 0){
+                list.add(name + "做的肉包子");
+                System.out.println(name + "做了一个肉包子~~");
+                Thread.sleep(2000);
+
+                // 唤醒别人, 等待自己
+                this.notifyAll();
+                this.wait();
+            }else {
+                // 有包子了，不做了。
+                // 唤醒别人, 等待自己
+                this.notifyAll();
+                this.wait();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 吃货1 吃货2
+    public synchronized void get() {
+        try {
+            String name = Thread.currentThread().getName();
+            if(list.size() == 1){
+                // 有包子，吃了
+                System.out.println(name  + "吃了：" + list.get(0));
+                list.clear();
+                Thread.sleep(1000);
+                this.notifyAll();
+                this.wait();
+            }else {
+                // 没有包子
+                this.notifyAll();
+                this.wait();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**Test 类**
+```Java
+public class ThreadTest {
+    public static void main(String[] args) {
+        //   需求：3个生产者线程，负责生产包子，每个线程每次只能生产1个包子放在桌子上
+        //      2个消费者线程负责吃包子，每人每次只能从桌子上拿1个包子吃。
+        Desk desk  = new Desk();
+
+        // 创建3个生产者线程（3个厨师）
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师1").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师2").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师3").start();
+
+        // 创建2个消费者线程（2个吃货）
+        new Thread(() -&gt; {
+            while (true) {
+                desk.get();
+            }
+        }, "吃货1").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.get();
+            }
+        }, "吃货2").start();
+    }
+}
+```
+
+## 线程池
+
+* **线程池：**
+    * 线程池是Java中的一个重要的特性，用来管理线程
+    * 线程池可以重复利用线程，减少线程的创建和销毁
+    * 线程池可以控制线程的数量，防止线程过多导致系统资源耗尽
+    * 线程池可以提高程序的运行效率，提高程序的响应速度
+
+### ThreadPoolExecutor 构造器 
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412122006693.png)
+
+### ExecutorSerive 线程池的常用方法
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public Future<?> submit(Callable task)               | 提交一个Callable任务,用于获取线程返回的结果 |
+| public void execute(Runnable command)                | 提交一个Runnable任务 |
+| public void shutdown()                               | 关闭线程池 |
+| public List<Runnable> shutdownNow()                  | 关闭线程池，立即关闭 |
+
+**示例：**
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(3,5,8,
+                TimeUnit.SECONDS,new ArrayBlockingQueue<>(4),Executors.defaultThreadFactory(),new ThreadPoolExecutor.AbortPolicy());
+        // 线程池核心线程数3，最大线程数5，线程空闲时间8秒，阻塞队列容量4，线程工厂，拒绝策略
+
+        // 创建Runnable接口实现类对象
+        MyRunnable myRunnable = new MyRunnable();
+        // 线程池核心线程运行
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 线程池核心线程运行，将任务放入阻塞队列
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 线程池临时线程运行
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 拒绝新任务
+        pool.execute(myRunnable);
+        pool.shutdown();
+    }
+}
+```
+
+**MyRunnable 类**
+```Java
+public class MyRunnable implements Runnable {
+    @Override
+    public void run() {
+        String name = Thread.currentThread().getName();
+        System.out.println(name + " is running!");
+        try {
+            Thread.sleep(Integer.MAX_VALUE);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
+```
 
 
