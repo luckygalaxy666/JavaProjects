@@ -90,6 +90,18 @@
 * [线程池](#线程池)
     * [ThreadPoolExecutor 构造器](#threadpoolexecutor-构造器)
     * [ExecutorSerive 线程池的常用方法](#executorserive-线程池的常用方法)
+* [并发 并行](#并发-并行)
+* [线程的生命周期](#线程的生命周期)
+    * [线程的6种状态相互转换](#线程的6种状态相互转换)
+* [乐观锁 线程安全且并行](#乐观锁-线程安全且并行)
+* [网络通信](#网络通信)
+    * [InetAddress 类](#inetaddress-类)
+    * [UDP 与 TCP](#udp-与-tcp)
+    * [**UDP 通信**](#udp-通信)
+    * [Tcp 通信](#tcp-通信)
+        * [**一对一 多发多收 TCP 通信**](#一对一-多发多收-tcp-通信)
+        * [**多对一 多发多收 TCP 通信**](#多对一-多发多收-tcp-通信)
+        * [**多对多（群聊） 多发多收 TCP 通信**](#多对多群聊-多发多收-tcp-通信)
 
 <!-- vim-markdown-toc -->
 
@@ -3527,6 +3539,560 @@ public class MyRunnable implements Runnable {
         }
     }
 
+}
+```
+
+## 并发 并行
+
+* **并发和并行：**
+    * 并发和并行是计算机中的两个重要概念
+    * 并发是指多个任务交替执行，多个任务之间有时间片轮转，但因为CPU的速度非常快，所以看起来是同时执行
+    * 并行是指多个任务同时执行，多个任务之间没有时间片轮转
+
+
+## 线程的生命周期    
+
+* **线程的生命周期：**
+    * 线程的生命周期是指线程从创建到销毁的整个过程
+    * 线程的生命周期包括New、Runnable、Blocked、Waiting、Timed Waiting、Terminated等状态
+    * 线程的生命周期是线程的重要概念，了解线程的生命周期有助于更好的控制线程
+
+| 状态                                              | 说明 |
+| ---                                               | --- |
+| New                                               | 新建状态，线程创建后，还未调用start方法 |
+| Runnable                                          | 就绪状态，线程调用start方法后，等待CPU调度 |
+| Blocked                                           | 阻塞状态，线程等待锁 |
+| Waiting                                           | 等待状态，线程调用wait方法后，等待其他线程唤醒 |
+| Timed Waiting                                     | 限时等待状态，线程调用sleep方法后，等待一定时间 |
+| Terminated                                        | 终止状态，线程执行完毕或者调用stop方法后 |
+
+### 线程的6种状态相互转换
+
+**`sleep`方法不会释放锁，`wait`方法会释放锁**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412130935281.png)
+
+## 乐观锁 线程安全且并行
+
+* **乐观锁：**
+    * 乐观锁是一种线程安全的锁，可以保证线程安全且并行
+    * 乐观锁可以通过版本号、时间戳等方式实现
+    * 乐观锁可以通过CAS（Compare And Swap）算法实现 **原子类**
+    * 一开始不上锁，在出现线程安全问题时，重新获取版本号，再进行计算
+
+
+**不加锁的情况下，多线程并发操作会出现数据不一致的情况**
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        MyRunnable target = new MyRunnable();
+
+        for (int i = 0; i < 100; i++) {
+            new Thread(target).start();
+        }
+    }
+}
+```
+
+**MyRunnable 类**
+```Java
+public class MyRunnable implements Runnable{
+    private int count;
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + ++count
+            );
+        }
+    }
+}
+```
+
+**结果：**
+```Shell
+Thread-68 9985
+Thread-91 9973
+Thread-91 9986
+Thread-91 9987
+Thread-91 9988
+Thread-91 9989
+Thread-91 9990
+Thread-91 9991
+Thread-91 9992
+Thread-91 9993
+Thread-91 9994
+Thread-91 9995
+Thread-91 9996
+Thread-91 9997   // 没有计算到10000 
+```
+
+**使用乐观锁解决**
+
+**原理：**
+
+incrementAndGet()方法是原子操作,当线程调用incrementAndGet()方法时，如果计算后的版本号与原本的不一致，会重新获取版本号，再进行计算。
+
+
+**Test 类**
+```Java
+public class MyRunnable implements Runnable{
+    // 使用原子类
+    private AtomicInteger count = new AtomicInteger(0);
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + count.incrementAndGet());
+        }
+    }
+}
+```
+
+## 网络通信
+
+* **网络通信：**
+    * 网络通信是Java中的一个重要的特性，用来实现网络通信
+    * 网络通信可以实现客户端和服务器之间的通信
+    * 网络通信可以实现数据的传输、文件的传输等
+    * 网络通信可以使用Socket、ServerSocket等类实现
+
+### InetAddress 类
+
+* **InetAddress：**
+    * InetAddress是Java中的一个类，用来表示IP地址
+    * InetAddress可以获取本机IP地址、主机名、远程主机IP地址等
+    * InetAddress可以通过getByName方法获取InetAddress对象
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static InetAddress getLocalHost()            | 获取本机IP地址 |
+| public static InetAddress getByName(String host)    | 获取远程主机IP地址 |
+| public String getHostName()                         | 获取主机名 |
+| public String getHostAddress()                      | 获取IP地址 |
+| public boolean isReachable(int timeout)             | 判断主机是否可达 |
+
+**示例：**
+
+**Test 类**
+```Java
+public class InetAddressTest {
+    public static void main(String[] args) throws Exception {
+        InetAddress address = InetAddress.getLocalHost();
+        System.out.println(address.getHostName());
+        System.out.println(address.getHostAddress());
+
+        InetAddress ip2 = InetAddress.getByName("www.baidu.com");
+        System.out.println(ip2.getHostName());
+        System.out.println(ip2.getHostAddress());
+        System.out.println(ip2.isReachable(6000));
+    }
+}
+```
+
+### UDP 与 TCP
+
+* **UDP 与 TCP：**
+    * UDP（User Datagram Protocol）是一种无连接的协议，数据包大小限制在64KB以内
+    * UDP适用于实时性要求高的场景，如视频、音频等
+    * TCP（Transmission Control Protocol）是一种面向连接的协议，数据包大小没有限制
+    * TCP适用于数据传输要求高的场景，如文件传输、邮件传输等
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131118841.png)
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131120029.png)
+
+### **UDP 通信**
+
+* **UDP 通信：**
+    * UDP通信是一种无连接的通信方式，数据包大小限制在64KB以内
+    * UDP通信适用于实时性要求高的场景，如视频、音频等
+    * UDP通信可以使用DatagramSocket、DatagramPacket等类实现
+
+**DatagramSocket 类**
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void send(DatagramPacket p)                  | 发送数据包 |
+| public void receive(DatagramPacket p)               | 接收数据包 |
+| public void close()                                 | 关闭套接字 |
+
+**DatagramPacket 类**
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public DatagramPacket(byte[] buf, int length)       | 创建发送数据包 |
+| public DatagramPacket(byte[] buf, int length, InetAddress address, int port) | 创建接受数据包 |
+| public byte[] getData()                             | 获取数据 |
+| public int getLength()                              | 获取数据长度 |
+| public InetAddress getAddress()                     | 获取IP地址 |
+| public int getPort()                                | 获取端口号 |
+
+**示例：**
+
+**一发一收 UDP 通信**
+
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket socket =  new DatagramSocket(7777);
+
+        byte[] receiveData = new byte[1024*64];
+        DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+
+        // 接受一次数据
+        socket.receive(packet);
+        int len = packet.getLength();
+        System.out.println(new String(receiveData, 0, len));
+        System.out.println(packet.getAddress().getHostAddress());
+        // 获取发送端的端口号
+        System.out.println(packet.getPort());
+
+        socket.close();
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket client = new DatagramSocket(6789);
+
+        byte[] data = "Hello, I'm Client".getBytes();
+        DatagramPacket packet = new DatagramPacket(data,data.length, InetAddress.getLocalHost(),7777);
+
+        client.send(packet);
+
+        client.close();
+        System.out.println("Client has sent the message");
+    }
+}
+```
+
+**多发多收 UDP 通信**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131302932.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131302129.png)
+
+### Tcp 通信
+
+* **TCP 通信：**
+    * TCP通信是一种面向连接的通信方式，数据包大小没有限制
+    * TCP通信适用于数据传输要求高的场景，如文件传输、邮件传输等
+    * TCP通信可以使用Socket、ServerSocket等类实现
+
+**Socket 类** ：客户端
+
+| 方法名            | 说明 |
+| ---               | --- |
+| public OutputStream getOutputStream() | 获取输出流 |
+| public InputStream getInputStream()   | 获取输入流 |
+| public Socket(String host, int port)  | 创建Socket对象 |
+
+**ServerSocket 类** ：服务器端
+
+| 方法名            | 说明 |
+| ---               | --- |
+| public Socket accept() | 接受客户端连接 |
+
+#### **一对一 多发多收 TCP 通信**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 2. 调用accept方法，接受客户端的请求
+        Socket socket = serversocket.accept();
+        // 3. 通过socket对象获取输入流
+        InputStream is = socket.getInputStream();
+        DataInputStream dis = new DataInputStream(is);
+        while (true) {
+            try {
+                String str = dis.readUTF();
+                System.out.println(str);
+                System.out.println("-----------------");
+            } catch (Exception e) {
+                // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                dis.close();
+                socket.close();
+                break;
+            }
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");|
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+#### **多对一 多发多收 TCP 通信**
+
+**主线程接受客户端请求，利用线程池创建子线程处理客户端请求**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(3, 5, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+        // 2. 调用accept方法，接受客户端的请求
+        Socket socket = null;
+        while (true) {
+            socket = serversocket.accept();
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+        }
+
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread extends Thread {
+
+    Socket socket;
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println(socket.getRemoteSocketAddress()+"已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+#### **多对多（群聊） 多发多收 TCP 通信**
+
+**原理：**
+
+* `Server`端用`onlineSocket`保存所有**活跃的**`Client`端的`Socket`对象
+* `ServerReaderThread`线程接受到`Client`端的消息后，将消息通过`onlineSocket`转发给所有`client`端
+* `Client`端用`ClientReaderThread`线程接受`server`端的消息
+
+**Server 类**
+```Java
+public class Server {
+    public static Socket socket;
+    public static List<Socket> onlineSocket = new ArrayList<>();
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(5, 8, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+        // 2. 调用accept方法，接受客户端的请求
+
+        while (true) {
+            socket = serversocket.accept();
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+            onlineSocket.add(socket);
+        }
+
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread extends Thread {
+
+    Socket socket;
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println(socket.getRemoteSocketAddress()+"已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    SendMSGToAll(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                    Server.onlineSocket.remove(socket);
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void SendMSGToAll(String str) {
+        for (Socket socket1 : Server.onlineSocket) {
+            try {
+                OutputStream os = socket1.getOutputStream();
+                DataOutputStream dos = new DataOutputStream(os);
+                dos.writeUTF(str);
+                dos.flush();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+        ClientReaderThread crt = new ClientReaderThread(socket);
+        crt.start();
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+**ClientReaderThread 类**
+```Java
+public class ClientReaderThread extends Thread {
+    Socket socket;
+
+    public ClientReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println("自己已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println("自己断开连接");
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 ```
 
