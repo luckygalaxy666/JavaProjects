@@ -82,6 +82,43 @@
     * [第二种方式 实现Runnable接口](#第二种方式-实现runnable接口)
     * [第三种方式 实现Callable接口](#第三种方式-实现callable接口)
     * [Thread 类的常用方法](#thread-类的常用方法)
+    * [线程安全问题](#线程安全问题)
+        * [同步化方法](#同步化方法)
+        * [同步化代码块](#同步化代码块)
+        * [lock 锁](#lock-锁)
+    * [线程通信](#线程通信)
+* [线程池](#线程池)
+    * [ThreadPoolExecutor 构造器](#threadpoolexecutor-构造器)
+    * [ExecutorSerive 线程池的常用方法](#executorserive-线程池的常用方法)
+* [并发 并行](#并发-并行)
+* [线程的生命周期](#线程的生命周期)
+    * [线程的6种状态相互转换](#线程的6种状态相互转换)
+* [乐观锁 线程安全且并行](#乐观锁-线程安全且并行)
+* [网络通信](#网络通信)
+    * [InetAddress 类](#inetaddress-类)
+    * [UDP 与 TCP](#udp-与-tcp)
+    * [**UDP 通信**](#udp-通信)
+    * [Tcp 通信](#tcp-通信)
+        * [**一对一 多发多收 TCP 通信**](#一对一-多发多收-tcp-通信)
+        * [**多对一 多发多收 TCP 通信**](#多对一-多发多收-tcp-通信)
+        * [**多对多（群聊） 多发多收 TCP 通信**](#多对多群聊-多发多收-tcp-通信)
+        * [BS 通信](#bs-通信)
+* [Junit 单元测试](#junit-单元测试)
+    * [Junit 常用注解](#junit-常用注解)
+    * [Junit 常用断言方法](#junit-常用断言方法)
+* [反射](#反射)
+    * [Class 类](#class-类)
+    * [**获取Class对象的方式：**](#获取class对象的方式)
+    * [**反射获取构造器对象并使用**](#反射获取构造器对象并使用)
+    * [**反射获取方法对象并使用**](#反射获取方法对象并使用)
+    * [**反射获取属性对象并使用**](#反射获取属性对象并使用)
+    * [反射应用 ： 框架 获取对象的所有成员变量写入文件](#反射应用--框架-获取对象的所有成员变量写入文件)
+* [注解](#注解)
+    * [**自定义注解**](#自定义注解)
+    * [**元注解**](#元注解)
+    * [**解析注解**](#解析注解)
+    * [**注解的应用**](#注解的应用)
+* [动态代理](#动态代理)
 
 <!-- vim-markdown-toc -->
 
@@ -3201,6 +3238,1370 @@ public class ThreadTest3 {
 | public static Thread currentThread()                | 获取当前线程 |
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412111715468.png)
+
+### 线程安全问题
+
+* **线程安全问题：**
+    * 线程安全问题是多线程编程中的一个重要问题，需要特别注意
+    * 线程安全问题是指多个线程同时访问共享资源时可能出现的问题
+    * 线程安全问题可能导致程序出现异常、数据丢失等问题
+    * 线程安全问题可以通过加锁、使用线程安全的集合等方式解决
+
+**示例：**
+
+小明和小红同时在同一个账户中取钱，账户余额可能为负数
+
+**Account 类**
+```Java
+public class Account {
+    private double money;
+
+    public Account() {
+    }
+
+    public Account(double money) {
+        this.money = money;
+    }
+
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
+
+    public void drawMoney(int i) {
+            if (money < i) {
+                System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+                return;
+            }
+            System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+            money -= i;
+            System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+}
+
+```
+
+**DrawThread 类**
+```Java
+public class DrawThread extends Thread{
+
+    private Account account;
+
+    public DrawThread(Account account,String name) {
+        super(name);
+        this.account = account;
+    }
+
+    @Override
+    public void run() {
+        account.drawMoney(100000);
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        Account acc = new Account(100000);
+        new DrawThread(acc,"小明").start();
+        new DrawThread(acc,"小红").start();
+
+    }
+}
+```
+
+**结果：**
+```Java
+小明取款100000元
+小红取款100000元
+小明取款成功，余额0.0元
+小红取款成功，余额-100000.0元
+```
+
+**解决方法：**
+
+* **加锁：**
+    * 加锁是解决线程安全问题的一种常用方式
+    * 加锁可以保证同一时刻只有一个线程访问共享资源
+    * 加锁可以使用synchronized关键字实现
+
+#### 同步化方法
+
+**Account 类**
+```Java
+public synchronized void drawMoney(int i) {
+            if (money < i) {
+                System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+                return;
+            }
+            System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+            money -= i;
+            System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+```
+
+#### 同步化代码块
+
+**Account 类**
+```Java
+public void drawMoney(int i) {
+    synchronized (this) {
+        if (money < i) {
+            System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+            return;
+        }
+        System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+        money -= i;
+        System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    }
+}
+```
+
+#### lock 锁
+
+需要使用try-catch-finally 释放锁
+
+**Account 类**
+```Java
+public void drawMoney(int i) {
+    lock.lock();
+    try {
+        if (money < i) {
+            System.out.println(Thread.currentThread().getName() + "余额不足，取款失败");
+            return;
+        }
+        System.out.println(Thread.currentThread().getName()+ "取款"+i+"元");
+        money -= i;
+        System.out.println(Thread.currentThread().getName()+ "取款成功，余额"+money+"元");
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+### 线程通信
+
+* **线程通信：**
+    * 线程通信是多线程编程中的一个重要问题，需要特别注意
+    * 线程通信是指多个线程之间的协作，通过协作可以实现线程之间的数据交换
+    * 线程通信可以通过wait、notify、notifyAll等方法实现
+
+**示例：**
+有三个厨师和两个吃货，厨师每次做一个汉堡，吃货每次吃一个汉堡，当汉堡数量为0时，厨师开始做汉堡，吃货等待，当汉堡数量为1时，吃货开始吃汉堡，厨师等待
+
+**Desk 类**
+```Java
+public class Desk {
+    private List&lt;String&gt; list = new ArrayList&lt;&gt;();
+
+    // 放1个包子的方法
+    // 厨师1 厨师2 厨师3
+    public synchronized void put() {
+        try {
+            String name = Thread.currentThread().getName();
+            // 判断是否有包子。
+            if(list.size() == 0){
+                list.add(name + "做的肉包子");
+                System.out.println(name + "做了一个肉包子~~");
+                Thread.sleep(2000);
+
+                // 唤醒别人, 等待自己
+                this.notifyAll();
+                this.wait();
+            }else {
+                // 有包子了，不做了。
+                // 唤醒别人, 等待自己
+                this.notifyAll();
+                this.wait();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 吃货1 吃货2
+    public synchronized void get() {
+        try {
+            String name = Thread.currentThread().getName();
+            if(list.size() == 1){
+                // 有包子，吃了
+                System.out.println(name  + "吃了：" + list.get(0));
+                list.clear();
+                Thread.sleep(1000);
+                this.notifyAll();
+                this.wait();
+            }else {
+                // 没有包子
+                this.notifyAll();
+                this.wait();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**Test 类**
+```Java
+public class ThreadTest {
+    public static void main(String[] args) {
+        //   需求：3个生产者线程，负责生产包子，每个线程每次只能生产1个包子放在桌子上
+        //      2个消费者线程负责吃包子，每人每次只能从桌子上拿1个包子吃。
+        Desk desk  = new Desk();
+
+        // 创建3个生产者线程（3个厨师）
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师1").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师2").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.put();
+            }
+        }, "厨师3").start();
+
+        // 创建2个消费者线程（2个吃货）
+        new Thread(() -&gt; {
+            while (true) {
+                desk.get();
+            }
+        }, "吃货1").start();
+
+        new Thread(() -&gt; {
+            while (true) {
+                desk.get();
+            }
+        }, "吃货2").start();
+    }
+}
+```
+
+## 线程池
+
+* **线程池：**
+    * 线程池是Java中的一个重要的特性，用来管理线程
+    * 线程池可以重复利用线程，减少线程的创建和销毁
+    * 线程池可以控制线程的数量，防止线程过多导致系统资源耗尽
+    * 线程池可以提高程序的运行效率，提高程序的响应速度
+
+### ThreadPoolExecutor 构造器 
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412122006693.png)
+
+### ExecutorSerive 线程池的常用方法
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public Future<?> submit(Callable task)               | 提交一个Callable任务,用于获取线程返回的结果 |
+| public void execute(Runnable command)                | 提交一个Runnable任务 |
+| public void shutdown()                               | 关闭线程池 |
+| public List<Runnable> shutdownNow()                  | 关闭线程池，立即关闭 |
+
+**示例：**
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(3,5,8,
+                TimeUnit.SECONDS,new ArrayBlockingQueue<>(4),Executors.defaultThreadFactory(),new ThreadPoolExecutor.AbortPolicy());
+        // 线程池核心线程数3，最大线程数5，线程空闲时间8秒，阻塞队列容量4，线程工厂，拒绝策略
+
+        // 创建Runnable接口实现类对象
+        MyRunnable myRunnable = new MyRunnable();
+        // 线程池核心线程运行
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 线程池核心线程运行，将任务放入阻塞队列
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 线程池临时线程运行
+        pool.execute(myRunnable);
+        pool.execute(myRunnable);
+        // 拒绝新任务
+        pool.execute(myRunnable);
+        pool.shutdown();
+    }
+}
+```
+
+**MyRunnable 类**
+```Java
+public class MyRunnable implements Runnable {
+    @Override
+    public void run() {
+        String name = Thread.currentThread().getName();
+        System.out.println(name + " is running!");
+        try {
+            Thread.sleep(Integer.MAX_VALUE);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
+```
+
+## 并发 并行
+
+* **并发和并行：**
+    * 并发和并行是计算机中的两个重要概念
+    * 并发是指多个任务交替执行，多个任务之间有时间片轮转，但因为CPU的速度非常快，所以看起来是同时执行
+    * 并行是指多个任务同时执行，多个任务之间没有时间片轮转
+
+
+## 线程的生命周期    
+
+* **线程的生命周期：**
+    * 线程的生命周期是指线程从创建到销毁的整个过程
+    * 线程的生命周期包括New、Runnable、Blocked、Waiting、Timed Waiting、Terminated等状态
+    * 线程的生命周期是线程的重要概念，了解线程的生命周期有助于更好的控制线程
+
+| 状态                                              | 说明 |
+| ---                                               | --- |
+| New                                               | 新建状态，线程创建后，还未调用start方法 |
+| Runnable                                          | 就绪状态，线程调用start方法后，等待CPU调度 |
+| Blocked                                           | 阻塞状态，线程等待锁 |
+| Waiting                                           | 等待状态，线程调用wait方法后，等待其他线程唤醒 |
+| Timed Waiting                                     | 限时等待状态，线程调用sleep方法后，等待一定时间 |
+| Terminated                                        | 终止状态，线程执行完毕或者调用stop方法后 |
+
+### 线程的6种状态相互转换
+
+**`sleep`方法不会释放锁，`wait`方法会释放锁**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412130935281.png)
+
+## 乐观锁 线程安全且并行
+
+* **乐观锁：**
+    * 乐观锁是一种线程安全的锁，可以保证线程安全且并行
+    * 乐观锁可以通过版本号、时间戳等方式实现
+    * 乐观锁可以通过CAS（Compare And Swap）算法实现 **原子类**
+    * 一开始不上锁，在出现线程安全问题时，重新获取版本号，再进行计算
+
+
+**不加锁的情况下，多线程并发操作会出现数据不一致的情况**
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        MyRunnable target = new MyRunnable();
+
+        for (int i = 0; i < 100; i++) {
+            new Thread(target).start();
+        }
+    }
+}
+```
+
+**MyRunnable 类**
+```Java
+public class MyRunnable implements Runnable{
+    private int count;
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + ++count
+            );
+        }
+    }
+}
+```
+
+**结果：**
+```Shell
+Thread-68 9985
+Thread-91 9973
+Thread-91 9986
+Thread-91 9987
+Thread-91 9988
+Thread-91 9989
+Thread-91 9990
+Thread-91 9991
+Thread-91 9992
+Thread-91 9993
+Thread-91 9994
+Thread-91 9995
+Thread-91 9996
+Thread-91 9997   // 没有计算到10000 
+```
+
+**使用乐观锁解决**
+
+**原理：**
+
+incrementAndGet()方法是原子操作,当线程调用incrementAndGet()方法时，如果计算后的版本号与原本的不一致，会重新获取版本号，再进行计算。
+
+
+**Test 类**
+```Java
+public class MyRunnable implements Runnable{
+    // 使用原子类
+    private AtomicInteger count = new AtomicInteger(0);
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName() + " " + count.incrementAndGet());
+        }
+    }
+}
+```
+
+## 网络通信
+
+* **网络通信：**
+    * 网络通信是Java中的一个重要的特性，用来实现网络通信
+    * 网络通信可以实现客户端和服务器之间的通信
+    * 网络通信可以实现数据的传输、文件的传输等
+    * 网络通信可以使用Socket、ServerSocket等类实现
+
+### InetAddress 类
+
+* **InetAddress：**
+    * InetAddress是Java中的一个类，用来表示IP地址
+    * InetAddress可以获取本机IP地址、主机名、远程主机IP地址等
+    * InetAddress可以通过getByName方法获取InetAddress对象
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static InetAddress getLocalHost()            | 获取本机IP地址 |
+| public static InetAddress getByName(String host)    | 获取远程主机IP地址 |
+| public String getHostName()                         | 获取主机名 |
+| public String getHostAddress()                      | 获取IP地址 |
+| public boolean isReachable(int timeout)             | 判断主机是否可达 |
+
+**示例：**
+
+**Test 类**
+```Java
+public class InetAddressTest {
+    public static void main(String[] args) throws Exception {
+        InetAddress address = InetAddress.getLocalHost();
+        System.out.println(address.getHostName());
+        System.out.println(address.getHostAddress());
+
+        InetAddress ip2 = InetAddress.getByName("www.baidu.com");
+        System.out.println(ip2.getHostName());
+        System.out.println(ip2.getHostAddress());
+        System.out.println(ip2.isReachable(6000));
+    }
+}
+```
+
+### UDP 与 TCP
+
+* **UDP 与 TCP：**
+    * UDP（User Datagram Protocol）是一种无连接的协议，数据包大小限制在64KB以内
+    * UDP适用于实时性要求高的场景，如视频、音频等
+    * TCP（Transmission Control Protocol）是一种面向连接的协议，数据包大小没有限制
+    * TCP适用于数据传输要求高的场景，如文件传输、邮件传输等
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131118841.png)
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131120029.png)
+
+### **UDP 通信**
+
+* **UDP 通信：**
+    * UDP通信是一种无连接的通信方式，数据包大小限制在64KB以内
+    * UDP通信适用于实时性要求高的场景，如视频、音频等
+    * UDP通信可以使用DatagramSocket、DatagramPacket等类实现
+
+**DatagramSocket 类**
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public void send(DatagramPacket p)                  | 发送数据包 |
+| public void receive(DatagramPacket p)               | 接收数据包 |
+| public void close()                                 | 关闭套接字 |
+
+**DatagramPacket 类**
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public DatagramPacket(byte[] buf, int length)       | 创建发送数据包 |
+| public DatagramPacket(byte[] buf, int length, InetAddress address, int port) | 创建接受数据包 |
+| public byte[] getData()                             | 获取数据 |
+| public int getLength()                              | 获取数据长度 |
+| public InetAddress getAddress()                     | 获取IP地址 |
+| public int getPort()                                | 获取端口号 |
+
+**示例：**
+
+**一发一收 UDP 通信**
+
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket socket =  new DatagramSocket(7777);
+
+        byte[] receiveData = new byte[1024*64];
+        DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+
+        // 接受一次数据
+        socket.receive(packet);
+        int len = packet.getLength();
+        System.out.println(new String(receiveData, 0, len));
+        System.out.println(packet.getAddress().getHostAddress());
+        // 获取发送端的端口号
+        System.out.println(packet.getPort());
+
+        socket.close();
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket client = new DatagramSocket(6789);
+
+        byte[] data = "Hello, I'm Client".getBytes();
+        DatagramPacket packet = new DatagramPacket(data,data.length, InetAddress.getLocalHost(),7777);
+
+        client.send(packet);
+
+        client.close();
+        System.out.println("Client has sent the message");
+    }
+}
+```
+
+**多发多收 UDP 通信**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131302932.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412131302129.png)
+
+### Tcp 通信
+
+* **TCP 通信：**
+    * TCP通信是一种面向连接的通信方式，数据包大小没有限制
+    * TCP通信适用于数据传输要求高的场景，如文件传输、邮件传输等
+    * TCP通信可以使用Socket、ServerSocket等类实现
+
+**Socket 类** ：客户端
+
+| 方法名            | 说明 |
+| ---               | --- |
+| public OutputStream getOutputStream() | 获取输出流 |
+| public InputStream getInputStream()   | 获取输入流 |
+| public Socket(String host, int port)  | 创建Socket对象 |
+
+**ServerSocket 类** ：服务器端
+
+| 方法名            | 说明 |
+| ---               | --- |
+| public Socket accept() | 接受客户端连接 |
+
+#### **一对一 多发多收 TCP 通信**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 2. 调用accept方法，接受客户端的请求
+        Socket socket = serversocket.accept();
+        // 3. 通过socket对象获取输入流
+        InputStream is = socket.getInputStream();
+        DataInputStream dis = new DataInputStream(is);
+        while (true) {
+            try {
+                String str = dis.readUTF();
+                System.out.println(str);
+                System.out.println("-----------------");
+            } catch (Exception e) {
+                // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                dis.close();
+                socket.close();
+                break;
+            }
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");|
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+#### **多对一 多发多收 TCP 通信**
+
+**主线程接受客户端请求，利用线程池创建子线程处理客户端请求**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(3, 5, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+        // 2. 调用accept方法，接受客户端的请求
+        Socket socket = null;
+        while (true) {
+            socket = serversocket.accept();
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+        }
+
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread extends Thread {
+
+    Socket socket;
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println(socket.getRemoteSocketAddress()+"已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+#### **多对多（群聊） 多发多收 TCP 通信**
+
+**原理：**
+
+* `Server`端用`onlineSocket`保存所有**活跃的**`Client`端的`Socket`对象
+* `ServerReaderThread`线程接受到`Client`端的消息后，将消息通过`onlineSocket`转发给所有`client`端
+* `Client`端用`ClientReaderThread`线程接受`server`端的消息
+
+**Server 类**
+```Java
+public class Server {
+    public static Socket socket;
+    public static List<Socket> onlineSocket = new ArrayList<>();
+    public static void main(String[] args) throws Exception {
+        // 1. 创建ServerSocket对象,同时指定端口号
+        ServerSocket serversocket = new ServerSocket(8888);
+        // 创建线程池
+        ExecutorService pool = new ThreadPoolExecutor(5, 8, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+        // 2. 调用accept方法，接受客户端的请求
+
+        while (true) {
+            socket = serversocket.accept();
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+            onlineSocket.add(socket);
+        }
+
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread extends Thread {
+
+    Socket socket;
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println(socket.getRemoteSocketAddress()+"已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    SendMSGToAll(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println(socket.getRemoteSocketAddress()+"已断开连接");
+                    Server.onlineSocket.remove(socket);
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void SendMSGToAll(String str) {
+        for (Socket socket1 : Server.onlineSocket) {
+            try {
+                OutputStream os = socket1.getOutputStream();
+                DataOutputStream dos = new DataOutputStream(os);
+                dos.writeUTF(str);
+                dos.flush();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+}
+```
+
+**Client 类**
+```Java
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("Localhost", 8888);
+        OutputStream os = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(os);
+        ClientReaderThread crt = new ClientReaderThread(socket);
+        crt.start();
+        Scanner sc = new Scanner(System.in);
+        while(true)
+        {
+            System.out.println("请输入：");
+            String str = sc.nextLine();
+            if("exit".equals(str))
+            {
+                System.out.println("客户端退出！");
+                dos.close();
+                socket.close();
+                break;
+            }
+            dos.writeUTF(str);
+            dos.flush();
+
+        }
+    }
+}
+```
+
+**ClientReaderThread 类**
+```Java
+public class ClientReaderThread extends Thread {
+    Socket socket;
+
+    public ClientReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 3. 通过socket对象获取输入流
+        try {
+            InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            System.out.println("自己已连接");
+            while (true) {
+                try {
+                    String str = dis.readUTF();
+                    System.out.println(str);
+                    System.out.println("-----------------");
+                } catch (Exception e) {
+                    // CLient断开连接时，会抛出EOFException,可以作为断开连接的标志
+                    System.out.println("自己断开连接");
+                    dis.close();
+                    socket.close();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+#### BS 通信
+
+* **BS 通信：**
+    * BS（Browser Server）通信是一种基于浏览器和服务器的通信方式
+    * BS通信可以实现浏览器和服务器之间的通信
+    * BS通信可以实现数据的传输、文件的传输等
+
+**示例：**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        ServerSocket server = new ServerSocket(8888);
+        ExecutorService pool = new ThreadPoolExecutor(32, 32, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+        while(true)
+        {
+            Socket socket = server.accept();
+            System.out.println(socket.getRemoteSocketAddress()+"连接成功");
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+        }
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread implements Runnable{
+    private Socket socket;
+
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        try {
+            OutputStream os = socket.getOutputStream();
+            PrintStream ps = new PrintStream(os);
+            ps.println("HTTP/1.1 200 OK");
+            ps.println("Content-Type:text/html;charset=utf-8");
+            ps.println();
+            ps.println("<div style='color:red;font-size:120px;text-align:center'>Hello World!</div>");
+
+            socket.close();
+            ps.close();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+}
+```
+
+## Junit 单元测试
+
+* **Junit：**
+    * Junit是Java中的一个单元测试框架，用来测试Java程序的正确性
+    * Junit可以通过注解@Test标记测试方法
+    * Junit可以通过断言方法assertEquals、assertTrue等判断测试结果是否正确
+    * Junit可以通过@Before、@After等注解标记测试方法的执行顺序
+
+**示例：**
+
+**StringUtil 类**
+```Java
+public class StringUtil {
+    public static String reverse(String str) {
+//        if(str == null) return null;
+        return new StringBuilder(str).reverse().toString();
+    }
+}
+```
+
+**StringUtilTest 类**
+```Java
+public class StringUtilTest {
+
+    @Test
+    public void testReverse() {
+        String res = StringUtil.reverse("happy");
+        String a = StringUtil.reverse(null); // 没有处理null的情况 会报错
+        System.out.println(res);
+        Assert.assertEquals("有误！", "yppah", res);
+    }
+}
+```
+
+### Junit 常用注解
+
+| 注解                                              | 说明 |
+| ---                                               | --- |
+| @Test                                             | 标记测试方法 |
+| @Before                                           | 标记在测试方法之前执行 |
+| @After                                            | 标记在测试方法之后执行 |
+| @BeforeClass                                      | 标记在测试类之前执行 |
+| @AfterClass                                       | 标记在测试类之后执行 |
+| @Ignore                                           | 标记测试方法忽略 |
+
+### Junit 常用断言方法
+
+| 方法                                              | 说明 |
+| ---                                               | --- |
+| assertEquals(expected, actual)                     | 判断两个对象是否相等 |
+| assertNotEquals(unexpected, actual)               | 判断两个对象是否不相等 |
+| assertTrue(condition)                              | 判断条件是否为真 |
+| assertFalse(condition)                             | 判断条件是否为假 |
+| assertNull(object)                                 | 判断对象是否为空 |
+| assertNotNull(object)                              | 判断对象是否不为空 |
+
+## 反射
+
+* **反射：**
+    * 反射是Java中的一个重要特性，可以动态获取类的信息、调用类的方法、创建类的对象等
+    * 反射可以实现框架、插件、动态代理等功能
+    * 反射可以通过Class类实现，Class类是Java中的一个类，用来表示类的信息
+
+### Class 类
+
+* **Class：**
+    * Class是Java中的一个类，用来表示类的信息
+    * Class可以获取类的信息、调用类的方法、创建类的对象等
+    * Class可以通过类的全限定名、类的对象、类的字节码文件等方式获取
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static Class<?> forName(String className)    | 根据类的全限定名获取Class对象 |
+| public Constructor<?> getConstructor(Class<?>... parameterTypes) | 获取指定参数类型的构造方法 |
+| public Method getMethod(String name, Class<?>... parameterTypes) | 获取指定参数类型的方法 |
+| public Field getField(String name)                  | 获取指定名称的属性 |
+| public Object newInstance()                         | 创建类的对象 |
+| public Object invoke(Object obj, Object... args)    | 调用类的方法 |
+
+
+
+### **获取Class对象的方式：**
+* 通过类名.class方式
+* 通过Class的静态方法forName(String className)
+* 通过对象的getClass()方法
+
+**示例：**
+
+**Test 类**
+```Java
+public class Test1Class {
+    public static void main(String[] args) throws Exception {
+        // 1.通过.class方式
+        Class c1 = Student.class;
+        System.out.println(c1.getName());
+        System.out.println(c1.getSimpleName());
+
+        // 2.调用Class的静态方法：forName(String className)
+        Class c2 = Class.forName("com.liu.reflect.Student");
+        System.out.println(c2.getName());
+
+        // 3.通过对象的getClass()方法
+        Student s1 = new Student();
+        Class c3 = s1.getClass();
+        System.out.println(c3.getName());
+    }
+}
+```
+
+### **反射获取构造器对象并使用**
+
+注意： 
+* **``getDeclaredConstructor()``** 获取所有构造器，包括私有构造器
+* **``setAccessible(true)``** 设置为true，可以访问私有构造器
+* **``newInstance()``** 创建对象
+
+**Test 类**
+```Java
+public class Test2Constructor {
+    @Test
+    public void testGetConstructor() throws Exception {
+        Class c =  Cat.class;
+        Constructor constructor = c.getDeclaredConstructor();
+        // 禁止检查访问权限
+        constructor.setAccessible(true);
+        Cat cat =  (Cat) constructor.newInstance();
+        System.out.println(cat);
+    }
+}
+```
+**Cat 类**
+```Java
+public class Cat {
+    private String name;
+    private int age;
+
+    private Cat() {
+
+    }
+
+    @Override
+    public String toString() {
+        return "Cat{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    private Cat(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+### **反射获取方法对象并使用**
+
+* 与构造器类似，通过``getDeclaredMethod()``获取方法对象，通过``invoke()``调用方法
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412141636964.png)
+
+### **反射获取属性对象并使用**
+
+* 通过``getField()``获取属性对象，通过``setAccessible(true)``设置为true，可以访问私有属性
+* 通过``get()``获取属性值，通过``set()``设置属性值
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412141637029.png)
+
+### 反射应用 ： 框架 获取对象的所有成员变量写入文件
+
+**Test 类**
+```Java
+public class Test3Frame {
+    @Test
+    public void testObjectFrame() throws Exception {
+        Student student = new Student("UESTC", "liu", 20,"男");
+        Cat cat = new Cat("Tom", 3);
+
+        ObjectFrame.saveObject(student);
+        ObjectFrame.saveObject(cat);
+        }
+}
+```
+
+**ObjectFrame 类**
+```Java
+public class ObjectFrame {
+    public static void saveObject(Object obj) throws Exception {
+        System.out.println("保存对象：" + obj);
+        PrintStream ps = new PrintStream
+                (new FileOutputStream("D:\\JavaProjects\\Javapromax\\JavaPractice\\junit-reflect\\src\\com\\liu\\reflect\\obj.txt",true));
+
+        Class c1 = obj.getClass();
+        String cName = c1.getSimpleName();
+        ps.println("---------------" + cName+"----------------");
+
+        Field[] fields = c1.getDeclaredFields();
+        for (Field field : fields) {
+            String name = field.getName();
+            field.setAccessible(true);
+            String val = field.get(obj) + "";
+            ps.println(name + "=" + val);
+
+        }
+        ps.close();
+
+    }
+}
+```
+
+**输出文件 obj.txt**
+```Shell
+---------------Student----------------
+school=UESTC
+name=liu
+age=20
+sex=男
+---------------Cat----------------
+name=Tom
+age=3
+```
+
+
+## 注解
+
+* **注解：**
+    * 注解是Java中的一个重要特性，用来标记类、方法、变量等
+    * 注解可以通过@符号标记，如@Override、@Test等
+    * 注解可以通过元注解@Target、@Retention等实现
+    * 注解可以通过反射获取注解信息
+
+### **自定义注解**
+
+* **自定义注解：**
+    * 自定义注解可以通过@interface关键字定义
+    * 自定义注解可以通过元注解@Target、@Retention等实现
+    
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151747850.png)
+
+* **注解的原理** 
+    * 注解本质上是一个接口，继承Annotation接口  
+    * 注解的属性本质上是接口的抽象方法
+    * 注解的属性可以有默认值，可以通过default关键字指定
+    * 注解的属性可以是基本数据类型、String、枚举、注解、数组等
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151752674.png)
+
+### **元注解**
+
+* **元注解：**
+    * 元注解是Java中的一个重要特性，用来标记注解的注解
+    * 元注解可以通过@Target、@Retention等实现
+    * 元注解可以通过ElementType、RetentionPolicy等指定注解的作用范围、生命周期等
+
+| 元注解                                              | 说明 |
+| ---                                                 | --- |
+| @Target(ElementType.TYPE)                            | 标记注解的作用范围 |
+| @Retention(RetentionPolicy.RUNTIME)                   | 标记注解的生命周期 |
+| @Documented                                         | 标记注解是否包含在JavaDoc中 |
+| @Inherited                                          | 标记注解是否可以被继承 |
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151754780.png)
+
+### **解析注解**
+
+* **解析注解：**
+    * 可以通过反射获取注解信息
+
+**示例：**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151823670.png)
+
+**MyTest1 类**
+```Java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyTest1 {
+    String value();
+    double aaa() default  100;
+    String[] bbb();
+}
+```
+
+**AnnotationTest1 类**
+```Java
+public class AnnotationTest1 {
+    public static void main(String[] args) throws Exception {
+        Class<Demo> c = Demo.class;
+        // 解析类的全部注解
+        Annotation[] a = c.getDeclaredAnnotations();
+        for (Annotation annotation : a) {
+            System.out.println(annotation);
+        }
+        // 解析类中test1方法的注解
+        Method test1 = c.getDeclaredMethod("test1");
+
+        Annotation[] test1Annotation = test1.getDeclaredAnnotations();
+        for (Annotation annotation : test1Annotation) {
+            System.out.println(annotation);
+        }
+    }
+}
+```
+
+**Demo 类**
+```Java
+@MyTest1(value = "sss",bbb={"ss","111"})
+public class Demo {
+    @MyTest1(value = "sds",bbb={"s12","444"})
+    public void test1() {
+        System.out.println("test1");
+    }
+}
+```
+
+### **注解的应用**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151830016.png)
+
+**MyTest 类**
+```Java
+public class Test {
+    @MyTest
+    public void test1() {
+        System.out.println("test1");
+    }
+
+    public void test2() {
+        System.out.println("test2");
+    }
+    @MyTest
+    public void test3() {
+        System.out.println("test3");
+    }
+    @MyTest
+    public void test4() {
+        System.out.println("test4");
+    }
+
+    public static void main(String[] args) throws Exception {
+        Class<Test> testClass = Test.class;
+        Test a = new Test();
+        Method[] declaredMethods = testClass.getDeclaredMethods();
+        for (Method declaredMethod : declaredMethods) {
+            if(declaredMethod.isAnnotationPresent(MyTest.class))
+                    declaredMethod.invoke(a);
+        }
+    }
+}
+```
+
+## 动态代理
+
+* **动态代理：**
+    * 动态代理是Java中的一个重要特性，用来实现AOP、RPC等功能
+    * 动态代理可以通过Proxy类实现
+    * 动态代理可以通过InvocationHandler接口实现
+
+newProxyInstance()方法的参数：
+* ClassLoader loader：类加载器
+* Class<?>[] interfaces：接口数组
+* InvocationHandler h：实现InvocationHandler接口的代理类
+
+
+**示例：**
+* **BigStar 类**：被代理类
+* **Star 类**：接口
+* **ProxyUtil 类**：代理类
+* **Test 类**：测试类
+
+
+
+**BigStar 类**
+```Java
+public class BigStar implements Star {
+    public BigStar(String name) {
+        this.name = name;
+    }
+
+    private String name;
+
+    public String sing() {
+        System.out.println(name + " is singing");
+        return "感谢大家！";
+    }
+
+    public void dance() {
+        System.out.println(name + " is dancing");
+    }
+}
+```
+
+**Star 类**
+```Java
+public interface Star {
+    String sing();
+    void dance();
+}
+```
+
+**ProxyUtil**
+```Java
+public class ProxyUtil {
+    public static Star createProxy(BigStar bigStar) {
+        Star starProxy = (Star) Proxy.newProxyInstance(ProxyUtil.class.getClassLoader(), new Class[]{Star.class}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if (method.getName().equals("sing")) {
+                    System.out.println("代理人谈合同");
+                } else if (method.getName().equals("dance")) {
+                    System.out.println("代理人收钱");
+                }
+                return method.invoke(bigStar, args);
+            }
+        });
+        return starProxy;
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        BigStar bigStar = new BigStar("杨超越");
+        Star proxy = ProxyUtil.createProxy(bigStar);
+
+        String sing = proxy.sing();
+        System.out.println(sing);
+
+        proxy.dance();
+    }
+}
+```
+
 
 
 
