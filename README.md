@@ -102,6 +102,23 @@
         * [**一对一 多发多收 TCP 通信**](#一对一-多发多收-tcp-通信)
         * [**多对一 多发多收 TCP 通信**](#多对一-多发多收-tcp-通信)
         * [**多对多（群聊） 多发多收 TCP 通信**](#多对多群聊-多发多收-tcp-通信)
+        * [BS 通信](#bs-通信)
+* [Junit 单元测试](#junit-单元测试)
+    * [Junit 常用注解](#junit-常用注解)
+    * [Junit 常用断言方法](#junit-常用断言方法)
+* [反射](#反射)
+    * [Class 类](#class-类)
+    * [**获取Class对象的方式：**](#获取class对象的方式)
+    * [**反射获取构造器对象并使用**](#反射获取构造器对象并使用)
+    * [**反射获取方法对象并使用**](#反射获取方法对象并使用)
+    * [**反射获取属性对象并使用**](#反射获取属性对象并使用)
+    * [反射应用 ： 框架 获取对象的所有成员变量写入文件](#反射应用--框架-获取对象的所有成员变量写入文件)
+* [注解](#注解)
+    * [**自定义注解**](#自定义注解)
+    * [**元注解**](#元注解)
+    * [**解析注解**](#解析注解)
+    * [**注解的应用**](#注解的应用)
+* [动态代理](#动态代理)
 
 <!-- vim-markdown-toc -->
 
@@ -4095,5 +4112,497 @@ public class ClientReaderThread extends Thread {
     }
 }
 ```
+
+#### BS 通信
+
+* **BS 通信：**
+    * BS（Browser Server）通信是一种基于浏览器和服务器的通信方式
+    * BS通信可以实现浏览器和服务器之间的通信
+    * BS通信可以实现数据的传输、文件的传输等
+
+**示例：**
+
+**Server 类**
+```Java
+public class Server {
+    public static void main(String[] args) throws Exception {
+        ServerSocket server = new ServerSocket(8888);
+        ExecutorService pool = new ThreadPoolExecutor(32, 32, 8, TimeUnit.SECONDS, new ArrayBlockingQueue<>(4), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+        while(true)
+        {
+            Socket socket = server.accept();
+            System.out.println(socket.getRemoteSocketAddress()+"连接成功");
+            ServerReaderThread srt = new ServerReaderThread(socket);
+            pool.execute(srt);
+        }
+    }
+}
+```
+
+**ServerReaderThread 类**
+```Java
+public class ServerReaderThread implements Runnable{
+    private Socket socket;
+
+    public ServerReaderThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        try {
+            OutputStream os = socket.getOutputStream();
+            PrintStream ps = new PrintStream(os);
+            ps.println("HTTP/1.1 200 OK");
+            ps.println("Content-Type:text/html;charset=utf-8");
+            ps.println();
+            ps.println("<div style='color:red;font-size:120px;text-align:center'>Hello World!</div>");
+
+            socket.close();
+            ps.close();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+}
+```
+
+## Junit 单元测试
+
+* **Junit：**
+    * Junit是Java中的一个单元测试框架，用来测试Java程序的正确性
+    * Junit可以通过注解@Test标记测试方法
+    * Junit可以通过断言方法assertEquals、assertTrue等判断测试结果是否正确
+    * Junit可以通过@Before、@After等注解标记测试方法的执行顺序
+
+**示例：**
+
+**StringUtil 类**
+```Java
+public class StringUtil {
+    public static String reverse(String str) {
+//        if(str == null) return null;
+        return new StringBuilder(str).reverse().toString();
+    }
+}
+```
+
+**StringUtilTest 类**
+```Java
+public class StringUtilTest {
+
+    @Test
+    public void testReverse() {
+        String res = StringUtil.reverse("happy");
+        String a = StringUtil.reverse(null); // 没有处理null的情况 会报错
+        System.out.println(res);
+        Assert.assertEquals("有误！", "yppah", res);
+    }
+}
+```
+
+### Junit 常用注解
+
+| 注解                                              | 说明 |
+| ---                                               | --- |
+| @Test                                             | 标记测试方法 |
+| @Before                                           | 标记在测试方法之前执行 |
+| @After                                            | 标记在测试方法之后执行 |
+| @BeforeClass                                      | 标记在测试类之前执行 |
+| @AfterClass                                       | 标记在测试类之后执行 |
+| @Ignore                                           | 标记测试方法忽略 |
+
+### Junit 常用断言方法
+
+| 方法                                              | 说明 |
+| ---                                               | --- |
+| assertEquals(expected, actual)                     | 判断两个对象是否相等 |
+| assertNotEquals(unexpected, actual)               | 判断两个对象是否不相等 |
+| assertTrue(condition)                              | 判断条件是否为真 |
+| assertFalse(condition)                             | 判断条件是否为假 |
+| assertNull(object)                                 | 判断对象是否为空 |
+| assertNotNull(object)                              | 判断对象是否不为空 |
+
+## 反射
+
+* **反射：**
+    * 反射是Java中的一个重要特性，可以动态获取类的信息、调用类的方法、创建类的对象等
+    * 反射可以实现框架、插件、动态代理等功能
+    * 反射可以通过Class类实现，Class类是Java中的一个类，用来表示类的信息
+
+### Class 类
+
+* **Class：**
+    * Class是Java中的一个类，用来表示类的信息
+    * Class可以获取类的信息、调用类的方法、创建类的对象等
+    * Class可以通过类的全限定名、类的对象、类的字节码文件等方式获取
+
+| 方法名                                              | 说明 |
+| ---                                                 | --- |
+| public static Class<?> forName(String className)    | 根据类的全限定名获取Class对象 |
+| public Constructor<?> getConstructor(Class<?>... parameterTypes) | 获取指定参数类型的构造方法 |
+| public Method getMethod(String name, Class<?>... parameterTypes) | 获取指定参数类型的方法 |
+| public Field getField(String name)                  | 获取指定名称的属性 |
+| public Object newInstance()                         | 创建类的对象 |
+| public Object invoke(Object obj, Object... args)    | 调用类的方法 |
+
+
+
+### **获取Class对象的方式：**
+* 通过类名.class方式
+* 通过Class的静态方法forName(String className)
+* 通过对象的getClass()方法
+
+**示例：**
+
+**Test 类**
+```Java
+public class Test1Class {
+    public static void main(String[] args) throws Exception {
+        // 1.通过.class方式
+        Class c1 = Student.class;
+        System.out.println(c1.getName());
+        System.out.println(c1.getSimpleName());
+
+        // 2.调用Class的静态方法：forName(String className)
+        Class c2 = Class.forName("com.liu.reflect.Student");
+        System.out.println(c2.getName());
+
+        // 3.通过对象的getClass()方法
+        Student s1 = new Student();
+        Class c3 = s1.getClass();
+        System.out.println(c3.getName());
+    }
+}
+```
+
+### **反射获取构造器对象并使用**
+
+注意： 
+* **``getDeclaredConstructor()``** 获取所有构造器，包括私有构造器
+* **``setAccessible(true)``** 设置为true，可以访问私有构造器
+* **``newInstance()``** 创建对象
+
+**Test 类**
+```Java
+public class Test2Constructor {
+    @Test
+    public void testGetConstructor() throws Exception {
+        Class c =  Cat.class;
+        Constructor constructor = c.getDeclaredConstructor();
+        // 禁止检查访问权限
+        constructor.setAccessible(true);
+        Cat cat =  (Cat) constructor.newInstance();
+        System.out.println(cat);
+    }
+}
+```
+**Cat 类**
+```Java
+public class Cat {
+    private String name;
+    private int age;
+
+    private Cat() {
+
+    }
+
+    @Override
+    public String toString() {
+        return "Cat{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    private Cat(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+### **反射获取方法对象并使用**
+
+* 与构造器类似，通过``getDeclaredMethod()``获取方法对象，通过``invoke()``调用方法
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412141636964.png)
+
+### **反射获取属性对象并使用**
+
+* 通过``getField()``获取属性对象，通过``setAccessible(true)``设置为true，可以访问私有属性
+* 通过``get()``获取属性值，通过``set()``设置属性值
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412141637029.png)
+
+### 反射应用 ： 框架 获取对象的所有成员变量写入文件
+
+**Test 类**
+```Java
+public class Test3Frame {
+    @Test
+    public void testObjectFrame() throws Exception {
+        Student student = new Student("UESTC", "liu", 20,"男");
+        Cat cat = new Cat("Tom", 3);
+
+        ObjectFrame.saveObject(student);
+        ObjectFrame.saveObject(cat);
+        }
+}
+```
+
+**ObjectFrame 类**
+```Java
+public class ObjectFrame {
+    public static void saveObject(Object obj) throws Exception {
+        System.out.println("保存对象：" + obj);
+        PrintStream ps = new PrintStream
+                (new FileOutputStream("D:\\JavaProjects\\Javapromax\\JavaPractice\\junit-reflect\\src\\com\\liu\\reflect\\obj.txt",true));
+
+        Class c1 = obj.getClass();
+        String cName = c1.getSimpleName();
+        ps.println("---------------" + cName+"----------------");
+
+        Field[] fields = c1.getDeclaredFields();
+        for (Field field : fields) {
+            String name = field.getName();
+            field.setAccessible(true);
+            String val = field.get(obj) + "";
+            ps.println(name + "=" + val);
+
+        }
+        ps.close();
+
+    }
+}
+```
+
+**输出文件 obj.txt**
+```Shell
+---------------Student----------------
+school=UESTC
+name=liu
+age=20
+sex=男
+---------------Cat----------------
+name=Tom
+age=3
+```
+
+
+## 注解
+
+* **注解：**
+    * 注解是Java中的一个重要特性，用来标记类、方法、变量等
+    * 注解可以通过@符号标记，如@Override、@Test等
+    * 注解可以通过元注解@Target、@Retention等实现
+    * 注解可以通过反射获取注解信息
+
+### **自定义注解**
+
+* **自定义注解：**
+    * 自定义注解可以通过@interface关键字定义
+    * 自定义注解可以通过元注解@Target、@Retention等实现
+    
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151747850.png)
+
+* **注解的原理** 
+    * 注解本质上是一个接口，继承Annotation接口  
+    * 注解的属性本质上是接口的抽象方法
+    * 注解的属性可以有默认值，可以通过default关键字指定
+    * 注解的属性可以是基本数据类型、String、枚举、注解、数组等
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151752674.png)
+
+### **元注解**
+
+* **元注解：**
+    * 元注解是Java中的一个重要特性，用来标记注解的注解
+    * 元注解可以通过@Target、@Retention等实现
+    * 元注解可以通过ElementType、RetentionPolicy等指定注解的作用范围、生命周期等
+
+| 元注解                                              | 说明 |
+| ---                                                 | --- |
+| @Target(ElementType.TYPE)                            | 标记注解的作用范围 |
+| @Retention(RetentionPolicy.RUNTIME)                   | 标记注解的生命周期 |
+| @Documented                                         | 标记注解是否包含在JavaDoc中 |
+| @Inherited                                          | 标记注解是否可以被继承 |
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151754780.png)
+
+### **解析注解**
+
+* **解析注解：**
+    * 可以通过反射获取注解信息
+
+**示例：**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151823670.png)
+
+**MyTest1 类**
+```Java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyTest1 {
+    String value();
+    double aaa() default  100;
+    String[] bbb();
+}
+```
+
+**AnnotationTest1 类**
+```Java
+public class AnnotationTest1 {
+    public static void main(String[] args) throws Exception {
+        Class<Demo> c = Demo.class;
+        // 解析类的全部注解
+        Annotation[] a = c.getDeclaredAnnotations();
+        for (Annotation annotation : a) {
+            System.out.println(annotation);
+        }
+        // 解析类中test1方法的注解
+        Method test1 = c.getDeclaredMethod("test1");
+
+        Annotation[] test1Annotation = test1.getDeclaredAnnotations();
+        for (Annotation annotation : test1Annotation) {
+            System.out.println(annotation);
+        }
+    }
+}
+```
+
+**Demo 类**
+```Java
+@MyTest1(value = "sss",bbb={"ss","111"})
+public class Demo {
+    @MyTest1(value = "sds",bbb={"s12","444"})
+    public void test1() {
+        System.out.println("test1");
+    }
+}
+```
+
+### **注解的应用**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412151830016.png)
+
+**MyTest 类**
+```Java
+public class Test {
+    @MyTest
+    public void test1() {
+        System.out.println("test1");
+    }
+
+    public void test2() {
+        System.out.println("test2");
+    }
+    @MyTest
+    public void test3() {
+        System.out.println("test3");
+    }
+    @MyTest
+    public void test4() {
+        System.out.println("test4");
+    }
+
+    public static void main(String[] args) throws Exception {
+        Class<Test> testClass = Test.class;
+        Test a = new Test();
+        Method[] declaredMethods = testClass.getDeclaredMethods();
+        for (Method declaredMethod : declaredMethods) {
+            if(declaredMethod.isAnnotationPresent(MyTest.class))
+                    declaredMethod.invoke(a);
+        }
+    }
+}
+```
+
+## 动态代理
+
+* **动态代理：**
+    * 动态代理是Java中的一个重要特性，用来实现AOP、RPC等功能
+    * 动态代理可以通过Proxy类实现
+    * 动态代理可以通过InvocationHandler接口实现
+
+newProxyInstance()方法的参数：
+* ClassLoader loader：类加载器
+* Class<?>[] interfaces：接口数组
+* InvocationHandler h：实现InvocationHandler接口的代理类
+
+
+**示例：**
+* **BigStar 类**：被代理类
+* **Star 类**：接口
+* **ProxyUtil 类**：代理类
+* **Test 类**：测试类
+
+
+
+**BigStar 类**
+```Java
+public class BigStar implements Star {
+    public BigStar(String name) {
+        this.name = name;
+    }
+
+    private String name;
+
+    public String sing() {
+        System.out.println(name + " is singing");
+        return "感谢大家！";
+    }
+
+    public void dance() {
+        System.out.println(name + " is dancing");
+    }
+}
+```
+
+**Star 类**
+```Java
+public interface Star {
+    String sing();
+    void dance();
+}
+```
+
+**ProxyUtil**
+```Java
+public class ProxyUtil {
+    public static Star createProxy(BigStar bigStar) {
+        Star starProxy = (Star) Proxy.newProxyInstance(ProxyUtil.class.getClassLoader(), new Class[]{Star.class}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if (method.getName().equals("sing")) {
+                    System.out.println("代理人谈合同");
+                } else if (method.getName().equals("dance")) {
+                    System.out.println("代理人收钱");
+                }
+                return method.invoke(bigStar, args);
+            }
+        });
+        return starProxy;
+    }
+}
+```
+
+**Test 类**
+```Java
+public class Test {
+    public static void main(String[] args) {
+        BigStar bigStar = new BigStar("杨超越");
+        Star proxy = ProxyUtil.createProxy(bigStar);
+
+        String sing = proxy.sing();
+        System.out.println(sing);
+
+        proxy.dance();
+    }
+}
+```
+
+
+
 
 
