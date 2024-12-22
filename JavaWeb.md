@@ -41,6 +41,11 @@
 * [分层解耦](#分层解耦)
     * [三层架构](#三层架构)
     * [分层解耦](#分层解耦-1)
+* [Mysql](#mysql)
+    * [SQL语句](#sql语句)
+        * [DDL语句](#ddl语句)
+        * [DML语句](#dml语句)
+        * [DQL语句](#dql语句)
 
 <!-- vim-markdown-toc -->
 
@@ -865,3 +870,69 @@ public class HelloController {
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412211628737.png)
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412211639005.png)
+
+## Mysql
+
+* **Mysql**：关系型数据库管理系统
+    * **特点**：开源、免费、跨平台、高性能、高可靠、易扩展
+    * **功能**：存储数据、管理数据、查询数据、保护数据
+
+### SQL语句
+
+* **SQL**：Structured Query Language，结构化查询语言
+    * **DDL**：Data Definition Language，数据定义语言，创建、修改、删除数据库、表
+    * **DML**：Data Manipulation Language，数据操作语言，增删改数据
+    * **DCL**：Data Control Language，数据控制语言，授权、回收权限
+    * **DQL**：Data Query Language，数据查询语言，查询数据库中表的记录
+
+#### DDL语句
+
+* **数据库操作**
+    * **创建数据库**：`create database 数据库名`
+    * **删除数据库**：`drop database 数据库名`
+    * **选择数据库**：`use 数据库名`
+    * **查看数据库**：`show databases`
+    * **查看当前数据库**：`select database()`
+
+* **表操作**
+    * **创建表**：`create table 表名(字段名 类型(长度) 约束)`
+    * **删除表**：`drop table 表名`
+    * **查看表**：`show tables`
+    * **查看表结构**：`desc 表名`
+    * **修改表**：`alter table 表名 add|drop|modify|change 字段名 (新字段名) 类型(长度) 约束`
+    * **修改表名**：`rename table 旧表名 to 新表名`
+
+#### DML语句
+
+* **数据操作**
+    * **插入数据**：`insert into 表名(字段名) values(值)`
+    * **删除数据**：`delete from 表名 where 条件`
+    * **修改数据**：`update 表名 set 字段名=值 where 条件`
+    * **查询数据**：`select 字段名 from 表名 where 条件` 
+
+#### DQL语句
+
+* **数据查询**
+    * **查询所有字段**：`select * from 表名`
+    * **查询指定字段**：`select 字段名 from 表名`
+    * **查询条件**：`select 字段名 from 表名 where 条件`
+    * **查询排序**：`select 字段名 from 表名 order by 字段名 asc|desc`
+    * **查询分页**：`select 字段名 from 表名 limit 起始位置,查询数量`
+    * **起别名**: `select 字段名 as 别名 from 表名`
+    * **去重**: `select distinct 字段名 from 表名`
+
+* **条件查询**
+
+| 操作符 | 说明 |
+| --- | --- |
+| `=` | 等于 |
+| `!=` | 不等于 |
+| `>` | 大于 |
+| `<` | 小于 |
+| `>=` | 大于等于 |
+| `<=` | 小于等于 |
+| `between`...`and` | 在范围内 |
+| `like` | 模糊查询 `_`匹配单个字符 `%`匹配多个字符 |
+| `in` | 在集合内 |
+| `is null` | 为空 |
+
