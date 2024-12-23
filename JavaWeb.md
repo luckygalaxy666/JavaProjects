@@ -46,6 +46,12 @@
         * [DDL语句](#ddl语句)
         * [DML语句](#dml语句)
         * [DQL语句](#dql语句)
+        * [外键约束](#外键约束)
+    * [连接查询](#连接查询)
+    * [事务管理](#事务管理)
+    * [索引优化](#索引优化)
+    * [数据库连接池](#数据库连接池)
+    * [lombok](#lombok)
 
 <!-- vim-markdown-toc -->
 
@@ -935,4 +941,97 @@ public class HelloController {
 | `like` | 模糊查询 `_`匹配单个字符 `%`匹配多个字符 |
 | `in` | 在集合内 |
 | `is null` | 为空 |
+
+* **聚合函数**
+    * **count**：统计数量
+    * **sum**：求和
+    * **avg**：平均值
+    * **max**：最大值
+    * **min**：最小值
+
+* **分组查询**
+    * **分组**：`group by 字段名`
+    * **条件**：`having 条件`
+
+```sql
+select 字段名 [聚合函数] from 表名 [where 条件] group by 字段名 having 分组后过滤条件
+```
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412230939500.png)
+
+* **分页查询**
+    * **limit**：`limit 起始位置,查询数量`
+
+```sql
+select 字段名 from 表名 limit 起始位置,查询数量
+```
+
+* **if和case**
+    * **if**：`if(条件, 真值, 假值)`
+    * **case**：`case 字段名 when 值 then 结果 else 结果 end`
+
+#### 外键约束
+
+* **外键约束**：保证表与表之间的关系，保证数据的完整性
+    * **创建外键**：`alter table 表名 add foreign key(字段名) references 表名(字段名)`
+    * **删除外键**：`alter table 表名 drop foreign key 外键名`
+
+* **物理外键**：外键字段与主键字段的数据类型、长度、约束必需一致
+  * 缺点:
+    1. 影响增删改的效率（需要检查外键关系）。
+    2. 仅用于单节点数据库，不适用于分布式数据库。
+    3. 容易引发数据库的死锁问题。
+
+### 连接查询
+
+* **连接查询**：多表查询，根据表与表之间的关系，查询数据
+    * **内连接**：
+        * 显式内连接：`select 字段名 from 表1 inner join 表2 on 表1.字段名=表2.字段名`
+        * 隐式内连接：`select 字段名 from 表1,表2 where 表1.字段名=表2.字段名`
+    * **外连接**：
+        * **左连接**：`select 字段名 from 表1 left join 表2 on 表1.字段名=表2.字段名` 
+        * **右连接**：`select 字段名 from 表1 right join 表2 on 表1.字段名=表2.字段名`
+
+### 事务管理
+
+* **事务**：一组操作，要么全部成功，要么全部失败
+    * **特点**：原子性、一致性、隔离性、持久性
+    * **隔离级别**：读未提交、读已提交、可重复读、串行化
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412231409981.png)
+
+* **事务操作**
+    * **开启事务**：`start transaction`
+    * **提交事务**：`commit`
+    * **回滚事务**：`rollback`
+ 
+### 索引优化
+
+* **索引**：提高查询效率，加快数据检索速度
+    * **特点**：提高查询效率，降低写入效率，占用磁盘空间
+    * **类型**：主键索引、唯一索引、普通索引、全文索引 
+
+* **优缺点**
+    * **优点**：提高查询效率，加快数据检索速度
+    * **缺点**：降低写入效率，占用磁盘空间
+
+* **B+树**：多路平衡查找树，每个节点最多有M个子节点，每个非叶子节点存储M-1个关键字
+    * **特点**：所有叶子节点在同一层，查询效率稳定，适合范围查询
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412231617110.png)
+
+* **创建索引**：`create index 索引名 on 表名(字段名)`
+* **删除索引**：`drop index 索引名 on 表名`
+* **查看索引**：`show index from 表名`
+
+### 数据库连接池
+
+* **连接池**：提高数据库连接的复用性，减少连接的创建和销毁
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412231950520.png)
+
+### lombok
+
+* **lombok**：简化Java开发，通过注解自动生成代码
+    * **特点**：减少冗余代码，提高开发效率
+    * **注解**：`@Data`，`@Getter`，`@Setter`，`@ToString`，`@NoArgsConstructor`，`@AllArgsConstructor`
+
 
