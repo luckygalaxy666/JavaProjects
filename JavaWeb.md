@@ -52,6 +52,12 @@
     * [索引优化](#索引优化)
     * [数据库连接池](#数据库连接池)
     * [lombok](#lombok)
+* [Mybatis](#mybatis)
+    * [预编译SQL](#预编译sql)
+        * [SQL注入](#sql注入)
+    * [添加数据](#添加数据)
+    * [XML映射文件](#xml映射文件)
+        * [动态SQL](#动态sql)
 
 <!-- vim-markdown-toc -->
 
@@ -1033,5 +1039,113 @@ select 字段名 from 表名 limit 起始位置,查询数量
 * **lombok**：简化Java开发，通过注解自动生成代码
     * **特点**：减少冗余代码，提高开发效率
     * **注解**：`@Data`，`@Getter`，`@Setter`，`@ToString`，`@NoArgsConstructor`，`@AllArgsConstructor`
+
+## Mybatis
+
+* **Mybatis**：持久层框架，用于操作数据库
+    * **特点**：基于XML配置文件，提供SQL映射，提供对象关系映射
+    * **优势**：减少开发工作量，提高开发效率，提高代码的可维护性和可扩展性
+
+### 预编译SQL
+
+* **预编译SQL**：提前编译SQL语句，提高查询效率
+    * **特点**：防止SQL注入，提高查询效率，减少编译次数
+
+
+
+```Java
+// 预编译SQL 
+@Mapper 
+public interface EmpMapper {
+
+    @Delete("delete from emp where id = #{id}")
+    public void deleteEmpById(Integer id);
+}
+```
+
+
+#### SQL注入
+
+* **SQL注入**：通过输入恶意SQL语句，获取数据库中的数据
+    * **原理**：拼接SQL语句，执行恶意SQL语句
+    
+
+
+```SQL
+# 查询所有用户
+select * from user where username='' and password=''
+# SQL注入 username 任意  password 1' or '1'='1
+
+select * from user where username='' and password='1' or '1'='1'
+# 逻辑发生改变，where 恒成立
+```
+
+### 添加数据
+
+* **添加数据**：向数据库中插入数据
+    * **特点**：提供对象关系映射，将Java对象映射为数据库表
+
+**示例：**
+
+向emp表中插入数据,使用@Insert注解封装SQL语句，使用@Options注解获取返回的主键
+
+```Java
+    @Options(keyProperty ="ID",useGeneratedKeys = true) // 获取返回的主键
+    @Insert("insert into emp(username, name, gender, image, job, entrydate, dept_id, create_time, update_time)"
+            + "values(#{username}, #{name},#{gender},#{image},#{job},#{entrydate},#{deptId},#{createTime},#{updateTime})")
+    public void insertEmp(Emp emp);
+```
+
+### XML映射文件
+
+* **XML映射文件**：提供SQL映射，将SQL语句封装到XML文件中
+    * **特点**：提供SQL映射，提高代码的可维护性和可扩展性
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412241617849.png)
+
+**示例：**
+
+在resources目录下创建EmpMapper.xml文件，封装SQL语句
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.EmpMapper">
+
+    <!-- 添加数据 -->
+    <insert id="insertEmp" parameterType="com.itheima.pojo.Emp">
+        insert into emp(username, name，gender, image, job, entrydate, dept_id, create_time, update_time) values(#{username}, #{name},#{gender},#{image},#{job},#{entrydate},#{deptId},#{createTime},#{updateTime})
+    </insert>
+
+</mapper>
+```
+
+#### 动态SQL
+
+* **动态SQL**：根据条件动态生成SQL语句
+    * **特点**：根据条件生成SQL语句，提高代码的可维护性和可扩展性
+
+* **if标签**：根据条件生成SQL语句
+    * **示例**：`<if test="条件">SQL语句</if>`
+
+* **where标签**：根据条件生成where子句
+    * **示例**：`<where>SQL语句</where>`
+    * **特点**：去除多余的and或or
+
+* **set标签**：根据条件生成set子句
+    * **示例**：`<set>SQL语句</set>`
+    * **特点**：去除多余的逗号
+
+* **foreach 标签**：根据条件生成in子句
+    * **示例**：`<foreach collection="集合" item="别名" separator="分隔符",open="前封装"，close="后封装">SQL语句</foreach>`
+    * **特点**：根据集合生成in子句
+
+     
+
+
+* **choose标签**：根据条件生成选择语句
+
+
+
 
 
