@@ -58,6 +58,34 @@
     * [添加数据](#添加数据)
     * [XML映射文件](#xml映射文件)
         * [动态SQL](#动态sql)
+    * [PageHelper](#pagehelper)
+* [yml配置文件](#yml配置文件)
+* [会话跟踪](#会话跟踪)
+    * [JWT](#jwt)
+* [Filter](#filter)
+    * [过滤器链](#过滤器链)
+* [Interceptor](#interceptor)
+    * [拦截路径](#拦截路径)
+    * [FIlter和Interceptor区别](#filter和interceptor区别)
+* [全局异常处理器](#全局异常处理器)
+* [事务管理 @Transactional](#事务管理-transactional)
+* [AOP 面向切面编程](#aop-面向切面编程)
+    * [通知类型](#通知类型)
+    * [切入点表达式](#切入点表达式)
+    * [连接点](#连接点)
+* [Bean管理](#bean管理)
+    * [获取Bean对象](#获取bean对象)
+    * [Bean的作用域](#bean的作用域)
+    * [第三方Bean](#第三方bean)
+* [SpringBoot](#springboot-1)
+    * [自动配置](#自动配置)
+        * [自动配置原理](#自动配置原理)
+    * [自定义Starter](#自定义starter)
+* [Maven高级](#maven高级)
+    * [分模块设计](#分模块设计)
+    * [继承设计](#继承设计)
+    * [聚合设计](#聚合设计)
+    * [私服设计](#私服设计)
 
 <!-- vim-markdown-toc -->
 
@@ -1145,7 +1173,485 @@ select * from user where username='' and password='1' or '1'='1'
 
 * **choose标签**：根据条件生成选择语句
 
+* **sql标签**：封装SQL语句，提高代码的复用性
+    * **示例**：`<sql id="别名">SQL语句</sql>`
+
+* **include标签**：引入其他SQL语句
+    * **示例**：`<include refid="别名"/>`
+
+**示例：**
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412261047334.png)
+
+### PageHelper
+
+* **PageHelper**：Mybatis分页插件，提供分页查询功能
+    * **特点**：提供分页查询功能，提高查询效率，减少代码量
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412262110684.png)
+
+* **使用步骤**
+    * **引入依赖**：`<dependency>...</dependency>`
+    * **配置插件**：`PageHelper.startPage(页码, 每页数量)`
+    * **查询数据**：`PageInfo<Emp> pageInfo = new PageInfo<>(list);`
 
 
 
+## yml配置文件
+
+* **yml**：YAML Ain't Markup Language，一种数据序列化格式
+    * **特点**：简洁、易读、易写，支持多种数据类型，支持注释
+
+* **语法规则**
+    * **缩进**：使用空格缩进，不使用Tab缩进
+    * **大小写**：区分大小写
+    * **注释**：使用`#`注释，单行注释
+    * **多行**：使用`|`保留换行，使用`>`折叠换行
+    * **引号**：使用`""`表示字符串，使用`''`表示字面量
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412271633718.png)
+
+## 会话跟踪
+
+* **会话跟踪**：记录用户的访问信息，保持用户的状态
+    * **特点**：保持用户的状态，提高用户体验，提高系统的安全性
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412272012801.png)
+
+### JWT
+
+* **JWT**：JSON Web Token，一种用于身份验证的令牌
+    * **特点**：无状态、跨域、安全、可扩展
+    * **组成**：头部、载荷、签名
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412272017461.png)  
+
+* **生成JWT**
+
+```Java
+@Test 
+public void testGenJWT()
+    {
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("username","liu");
+        claims.put("age",18);
+        String jwt = Jwts.builder()
+                .signWith(SignatureAlgorithm.HS256, "luckygalaxy") // 设置加密算法和加密盐
+                .setClaims(claims) // 设置自定义的数据
+                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60)) // 设置过期时间为1小时
+                .compact(); // 生成字符串
+        System.out.println(jwt);
+    }
+```
+
+* **解析JWT**
+
+```Java
+@Test
+public void testParseJWT()
+    {
+        Claims claims = Jwts.parser()
+                .setSigningKey("luckygalaxy") // 设置加密盐
+                .parseClaimsJws("eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MzUzMDYyMDMsImFnZSI6MTgsInVzZXJuYW1lIjoibGl1In0.nKyVXOywcfiVpHJJumm9X3qTAqvTOqjaYmxsfWLwtvw") // 设置要解析的jwt
+                .getBody(); // 获取jwt的body部分
+
+        System.out.println(claims);
+
+    }
+```
+
+## Filter
+
+* **Filter**：过滤器，用于拦截请求，处理请求和响应
+    * **特点**：拦截请求，处理请求和响应，提高代码的复用性和可维护性
+
+* **生命周期**：初始化、请求处理、销毁
+    * **初始化**：调用init方法，初始化Filter
+    * **请求处理**：调用doFilter方法，处理请求和响应
+    * **销毁**：调用destroy方法，销毁Filter
+
+* **使用步骤**
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281258191.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281256053.png)
+
+### 过滤器链
+
+* **过滤器链**：多个过滤器按照顺序执行
+    * **特点**：多个过滤器按照顺序执行，提高代码的复用性和可维护性
+
+* **执行顺序**：按照过滤器的配置顺序执行
+
+## Interceptor
+
+* **Interceptor**：拦截器，用于拦截请求，处理请求和响应
+    * **特点**：拦截请求，处理请求和响应，提高代码的复用性和可维护性
+
+### 拦截路径
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281402449.png)
+
+### FIlter和Interceptor区别
+
+* **Filter**：Servlet规范，基于回调函数，无法获取Spring容器中的Bean
+* **Interceptor**：Spring框架，基于AOP，可以获取Spring容器中的Bean
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281406056.png)
+
+## 全局异常处理器
+
+* **全局异常处理器**：处理系统中的异常，提高系统的稳定性
+    * **特点**：处理系统中的异常，提高系统的稳定性，提高用户体验
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281451789.png)
+
+通过`@RestControllerAdvice`注解，捕获所有异常，返回统一的格式，方便前端处理，展示错误信息
+
+```JAVA
+/**
+ * 全局异常处理器
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(Exception.class) // 捕获所有异常
+    public Result ex(Exception ex) {
+        ex.printStackTrace();
+        return Result.error("对不起，操作失败，请联系管理员");
+    }
+}
+
+```
+
+## 事务管理 @Transactional
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412281629773.png)
+
+**默认只有RuntimeException会事件回滚**
+
+* **rollbackFor**：指定异常时回滚 ，**``rollbackFor = Exception.class`` 所有异常都回滚**
+
+
+```JAVA
+    /**
+     * 删除部门信息 以及部门下的员工信息
+     * @param id
+     */
+    @Transactional(rollbackFor = Exception.class)  // 事务管理 所有异常都回滚
+    @Override
+    public void deleteDeptById(Integer id) {
+        deptMapper.deleteDeptById(id);
+        empMapper.deleteEmpByDeptId(id);
+
+    }
+```
+
+
+
+* **propagation**：事务传播行为
+    * **REQUIRED**：支持当前事务，如果不存在，创建一个新事务
+    * **REQUIRES_NEW**：创建新事务，如果存在，挂起当前事务
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291241170.png)    
+
+## AOP 面向切面编程
+
+* **AOP**：Aspect Oriented Programming，面向切面编程
+    * **特点**：提高代码的复用性和可维护性，提高系统的稳定性和安全性
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291245851.png)
+ 
+### 通知类型
+
+*  **@Before**：前置通知，方法执行前执行
+*  **@After**：后置通知，方法执行后执行
+*  **@AfterReturning**：返回通知，方法返回结果后执行
+*  **@AfterThrowing**：异常通知，方法抛出异常后执行
+*  **@Around**：环绕通知，方法执行前后执行
+
+### 切入点表达式
+
+* **切入点表达式**：匹配目标方法的表达式
+    * **通配符**：`*`匹配任意字符，`..`匹配任意参数
+    * **关键字**：`execution`，`within`，`args`，`@annotation`
+
+* **示例**：`execution(* com.itheima.service.*.*(..))`
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291324862.png)
+
+* `@Pointcut`：将公共的切入点表达式抽取出来，提高代码的复用性
+
+```JAVA
+    @Pointcut("execution(* com.itheima.service.*.*(..))")
+    public void pointcut() {}
+```
+
+* `@Before`：前置通知，方法执行前执行
+
+```JAVA
+    @Before("pointcut()") // 可以使用pointcut()代替切入点表达式
+    public void before(JoinPoint joinPoint) {
+        System.out.println("前置通知");
+    }
+```
+
+### 连接点
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291401845.png)
+
+## Bean管理
+
+### 获取Bean对象
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291932023.png)
+
+
+
+```Java
+@SpringBootTest
+class SpringbootWebConfig2ApplicationTests {
+
+    @Autowired
+    private ApplicationContext applicationContext; //spring容器
+    //获取bean对象
+    @Test
+    public void testGetBean(){
+        //根据bean的名称获取
+        DeptController bean1 = (DeptController) applicationContext.getBean("deptController");
+        System.out.println(bean1);
+
+        //根据bean的类型获取
+        DeptController bean2 = applicationContext.getBean(DeptController.class);
+        System.out.println(bean2);
+
+        //根据bean的名称 及 类型获取
+        DeptController bean3 =  applicationContext.getBean("deptController",DeptController.class);
+        System.out.println(bean3);
+    }
+}
+```
+
+### Bean的作用域
+
+* **Bean的作用域**：控制Bean的生命周期
+    * **singleton**：单例模式，一个容器只有一个Bean对象
+    * **prototype**：原型模式，每次获取Bean对象都会创建一个新的Bean对象
+    * **request**：请求模式，每次请求都会创建一个新的Bean对象
+    * **session**：会话模式，每次会话都会创建一个新的Bean对象
+
+* **默认作用域**：singleton
+
+* **修改作用域**：`@Scope("prototype")`
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291942038.png)
+
+### 第三方Bean
+
+* **第三方Bean**：由第三方提供的Bean对象
+    * **特点**：无法修改源码，无法添加注解
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412291957400.png)
+
+## SpringBoot
+
+### 自动配置
+
+* **自动配置**：根据依赖自动配置Bean对象
+    * **特点**：根据依赖自动配置Bean对象，提高开发效率，减少配置文件
+
+* **自动配置类**：`@Configuration`，`@EnableAutoConfiguration`，`@ComponentScan`
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412292046890.png)
+
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412292038694.png)
+
+#### 自动配置原理
+
+* **`@Conditional`**：条件注解，根据条件自动配置Bean对象
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412301055598.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412301103871.png)
+
+### 自定义Starter
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412301642027.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412301648168.png)
+
+
+`AliOSSAutoConfiguration` 自动配置类
+
+将`AliOSSProperties`配置类注入到`AliOSSUtils`工具类中, 并将`AliOSSUtils`注入到Spring容器中
+
+```Java
+@EnableConfigurationProperties(AliOSSProperties.class)
+@Configuration
+public class AliOSSAutoConfiguration {
+
+    @Bean
+    public AliOSSUtils aliOSSUtils(AliOSSProperties aliOSSProperties) {
+        AliOSSUtils aliOSSUtils = new AliOSSUtils();
+        aliOSSUtils.setAliOSSProperties(aliOSSProperties);
+        return aliOSSUtils;
+    }
+}
+```
+
+`AliOSSProperties` 配置类
+
+将`aliyun.oss`配置文件映射到`AliOSSProperties`配置类中
+
+
+
+```Java
+@ConfigurationProperties(prefix = "aliyun.oss")
+public class AliOSSProperties {
+    private String endpoint ;
+    private String accessKeyId;
+    private String accessKeySecret;
+    private String bucketName;
+
+    public String getAccessKeyId() {
+        return accessKeyId;
+    }
+
+    public void setAccessKeyId(String accessKeyId) {
+        this.accessKeyId = accessKeyId;
+    }
+
+    public String getAccessKeySecret() {
+        return accessKeySecret;
+    }
+
+    public void setAccessKeySecret(String accessKeySecret) {
+        this.accessKeySecret = accessKeySecret;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
+    }
+}
+```
+
+`AliOSSUtils` 工具类
+
+使用`AliOSSProperties`配置类, 上传文件到阿里云OSS
+
+```Java
+public class AliOSSUtils {
+
+    private AliOSSProperties aliOSSProperties;
+
+    public void setAliOSSProperties(AliOSSProperties aliOSSProperties) {
+        this.aliOSSProperties = aliOSSProperties;
+    }
+
+    /**
+     * 实现上传图片到OSS
+     */
+    public String upload(MultipartFile file) throws IOException {
+        // 获取上传的文件的输入流
+        String endpoint = aliOSSProperties.getEndpoint();
+        String accessKeyId = aliOSSProperties.getAccessKeyId();
+        String accessKeySecret = aliOSSProperties.getAccessKeySecret();
+        String bucketName = aliOSSProperties.getBucketName();
+
+        InputStream inputStream = file.getInputStream();
+
+        // 避免文件覆盖
+        String originalFilename = file.getOriginalFilename();
+        String fileName = UUID.randomUUID().toString() + originalFilename.substring(originalFilename.lastIndexOf("."));
+
+        //上传文件到 OSS
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        ossClient.putObject(bucketName, fileName, inputStream);
+
+        //文件访问路径
+        String url = endpoint.split("//")[0] + "//" + bucketName + "." + endpoint.split("//")[1] + "/" + fileName;
+        // 关闭ossClient
+        ossClient.shutdown();
+        return url;// 把上传到oss的路径返回
+    }
+
+}
+```
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412301653772.png) 
+
+## Maven高级
+
+### 分模块设计
+
+* **分模块设计**：将项目拆分成多个模块，每个模块负责不同的功能
+    * **特点**：降低耦合度，提高代码的可维护性和可扩展性
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302147952.png)
+
+
+在springboot-day10-web模块引入子模块的依赖，可以分模块开发
+```xml
+<dependency>
+            <groupId>com.itheima</groupId>
+            <artifactId>tilas-pojo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itheima</groupId>
+            <artifactId>tilas-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+```
+
+### 继承设计
+
+**如果分模块设计的多个工程有公共的依赖，可以创建父工程来实现依赖继承**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302150577.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302149750.png)
+
+ ### 版本锁定
+
+* **版本锁定**：锁定依赖的版本，避免版本冲突
+    * **特点**：避免版本冲突，提高代码的稳定性和可维护性
+
+* **版本锁定**：`<dependencyManagement>`，`<dependency>`
+
+**在父工程中锁定依赖的版本，各个子工程中引入依赖时自动锁定版本**
+
+### 聚合设计
+
+* **聚合设计**：将多个模块聚合成一个工程，统一管理
+    * **特点**：统一管理，提高代码的可维护性和可扩展性
+
+* **聚合设计**：`<modules>`
+
+* **通常在父工程中聚合多个子工程，统一管理**
+    * 解决packege过程中的依赖问题
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302208296.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302208726.png)
+
+### 私服设计
+
+* **私服设计**：搭建私有的Maven仓库，提高依赖的下载速度
+    * **特点**：提高依赖的下载速度，提高代码的稳定性和可维护性
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302213903.png)
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202412302217849.png)
+
+
+ 
 
