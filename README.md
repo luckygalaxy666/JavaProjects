@@ -26,5 +26,5 @@
 
 ## 苍穹外卖
 * 25.01.02 ~ 至今
-* [整理资料](https://github.com/luckygalaxy666/Offer75/blob/main/CangQiongTakeOut.md)
+* [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/CangQiongTakeOut.md)
 
