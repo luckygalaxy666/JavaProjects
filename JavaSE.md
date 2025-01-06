@@ -41,6 +41,7 @@
 * [Collection 集合](#collection-集合)
     * [List 集合](#list-集合)
     * [Set 集合](#set-集合)
+        * [常用方法](#常用方法)
         * [HashSet](#hashset)
             * [**红黑树**](#红黑树)
         * [LinkedHashSet](#linkedhashset)
@@ -2146,6 +2147,19 @@ public class ExceptionRepairTest {
     * ``HashSet``：无序、不重复、无索引
     * ``LinkedHashSet``：**有序**、不重复、无索引
     * ``TreeSet``：**排序**、不重复、无索引
+
+#### 常用方法
+
+| 方法名                                   | 说明 |
+| ---                                      | --- |
+| public boolean add(E e)                  | 添加元素 |
+| public boolean remove(Object o)          | 删除元素 |
+| public void clear()                      | 清空集合 |
+| public boolean contains(Object o)        | 判断集合中是否包含指定元素 |
+| public boolean isEmpty()                 | 判断集合是否为空 |
+| public int size()                        | 获取集合中元素的个数 |
+| public Object[] toArray()                | 将集合转换为数组 |
+
 
 #### HashSet
 

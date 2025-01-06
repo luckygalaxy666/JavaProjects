@@ -15,6 +15,15 @@
 * [ThreadLocal](#threadlocal)
     * [ThreadLocal 的使用方式：](#threadlocal-的使用方式)
 * [公共字段自动填充](#公共字段自动填充)
+* [Redis](#redis)
+    * [什么是 Redis](#什么是-redis)
+    * [Redis 常用命令](#redis-常用命令)
+        * [字符串](#字符串)
+        * [哈希](#哈希)
+        * [列表](#列表)
+        * [集合](#集合)
+        * [有序集合](#有序集合)
+        * [通用命令](#通用命令)
 
 <!-- vim-markdown-toc -->
 
@@ -265,6 +274,202 @@ public class AutoFillAspect {
         }
     }
 }
+```
+
+## Redis
+
+### 什么是 Redis
+
+Redis 是一个开源的**内存数据库**，它支持多种数据结构，如字符串、哈希、列表、集合、有序集合等。Redis 通常用于缓存、消息队列、分布式锁等场景。
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202501061522239.png)
+
+### Redis 常用命令
+
+#### 字符串
+
+- **SET key value**：设置 key 的值为 value
+- **GET key**：获取 key 的值
+- **DEL key**：删除 key
+- **SETEX key seconds value**：设置 key 的值为 value，并设置过期时间为 seconds 秒
+- **SETNX key value**：只有在 key 不存在时，才设置 key 的值为 value
+
+* 在Java中，我们可以使用 RedisTemplate 来操作 Redis，RedisTemplate 是 Spring Data Redis 提供的一个模板类，用于简化 Redis 的操作。
+
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testString()
+    {
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        valueOperations.set("name", "sky");  // set key value
+        System.out.println(valueOperations.get("name"));  // get key
+        valueOperations.set("string", "sky", 1000, TimeUnit.SECONDS);  // setex key seconds value
+        valueOperations.setIfAbsent("lock", "2");  // setnx key value;
+    }
+```
+
+
+#### 哈希
+
+- **HSET key field value**：设置 key 中 field 的值为 value
+- **HGET key field**：获取 key 中 field 的值
+- **HDEL key field**：删除 key 中 field 的值
+- **HKEYS key**：获取 key 中所有 field 的值
+- **HVALS key**：获取 key 中所有 value 的值
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202501061534562.png)
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testHash()
+    {
+        // hset hget hdel hkeys hvals
+        HashOperations hashOperations = redisTemplate.opsForHash();
+        hashOperations.put("user", "name", "sky");  // hset key field value
+        hashOperations.put("user", "age", "18");
+        System.out.println(hashOperations.get("user", "name"));  // hget key field
+        Set user = hashOperations.keys("user"); // hkeys key
+        System.out.println(user);
+
+        List values = hashOperations.values("user");// hvals key
+        System.out.println(values);
+
+        hashOperations.delete("user", "name");  // hdel key field
+
+    }
+```
+
+#### 列表
+
+- **LPUSH key value**：将 value 插入到 key 的列表头部
+- **RPUSH key value**：将 value 插入到 key 的列表尾部
+- **LRANGE key start stop**：获取 key 的列表中从 start 到 stop 的元素
+- **LPOP key**：移除并返回 key 的列表头部元素
+- **RPOP key**：移除并返回 key 的列表尾部元素
+- **LLEN key**：获取 key 的列表长度
+
+
+**L 表示左侧，R 表示右侧，PUSH 表示插入，POP 表示移除。**
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testList(){
+        //lpush lrange rpop llen
+        ListOperations listOperations = redisTemplate.opsForList();
+
+        listOperations.leftPushAll("mylist","a","b","c"); // lpush key value1 value2 value3
+        listOperations.leftPush("mylist","d"); // lpush key value
+
+        List mylist = listOperations.range("mylist", 0, -1); // lrange key start stop
+        System.out.println(mylist);
+
+        listOperations.rightPop("mylist"); // rpop key
+
+        Long size = listOperations.size("mylist"); // llen key
+        System.out.println(size);
+    }
+```
+
+
+#### 集合
+
+- **SADD key member**：将 member 添加到 key 的集合中
+- **SMEMBERS key**：获取 key 的集合中所有元素
+- **SISMEMBER key member**：判断 member 是否在 key 的集合中
+- **SREM key member**：将 member 从 key 的集合中移除
+- **SCARD key**：获取 key 的集合中元素的个数
+- **SINTER key1 [key2]**：获取 key1 和 key2 的交集
+- **SUNION key1 [key2]**：获取 key1 和 key2 的并集
+- **SDIFF key1 [key2]**：获取 key1 和 key2 的差集
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202501061557252.png)
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testSet(){
+        //sadd smembers scard sinter sunion srem
+        SetOperations setOperations = redisTemplate.opsForSet();
+
+        setOperations.add("set1","a","b","c","d"); // sadd key value1 value2 value3
+        setOperations.add("set2","a","b","x","y"); // sadd key value1 value2 value3
+
+        Set members = setOperations.members("set1"); // smembers key
+        System.out.println(members);
+
+        Long size = setOperations.size("set1"); // scard key
+        System.out.println(size);
+
+        Set intersect = setOperations.intersect("set1", "set2"); // sinter key1 key2
+        System.out.println(intersect);
+
+        Set union = setOperations.union("set1", "set2"); // sunion key1 key2
+        System.out.println(union);
+
+        setOperations.remove("set1","a","b"); // srem key value1 value2
+    }
+```
+
+
+#### 有序集合
+
+- **ZADD key score member**：将 member 添加到 key 的有序集合中，并设置分数为 score
+- **ZRANGE key start stop [WITHSCORES]**：获取 key 的有序集合中从 start 到 stop 的元素
+- **ZINCRBY key increment member**：将 key 的有序集合中 member 的分数增加 increment
+- **ZSCORE key member**：获取 key 的有序集合中 member 的分数
+- **ZREM key member**：将 key 的有序集合中 member 移除
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testZset(){
+        //zadd zrange zincrby zrem
+        ZSetOperations zSetOperations = redisTemplate.opsForZSet();  
+
+        zSetOperations.add("zset1","a",10); // zadd key score value
+        zSetOperations.add("zset1","b",12);
+        zSetOperations.add("zset1","c",9);
+
+        Set zset1 = zSetOperations.range("zset1", 0, -1); // zrange key start stop
+        System.out.println(zset1);
+
+        zSetOperations.incrementScore("zset1","c",10); // zincrby key increment value
+
+        zSetOperations.remove("zset1","a","b"); // zrem key value1 value2
+    }
+```
+
+
+#### 通用命令
+
+- **EXPIRE key seconds**：设置 key 的过期时间为 seconds 秒
+- **TTL key**：获取 key 的剩余过期时间
+- **EXISTS key**：判断 key 是否存在
+- **DEL key**：删除 key
+- **KEYS pattern**：获取所有符合 pattern 的 key
+- **TYPE key**：获取 key 的类型
+
+**Java中对应的操作：**
+```Java
+@Test
+    public void testCommon(){
+        //keys exists type del
+        Set keys = redisTemplate.keys("*");  // keys pattern
+        System.out.println(keys);
+
+        Boolean name = redisTemplate.hasKey("name"); // exists key
+        Boolean set1 = redisTemplate.hasKey("set1"); // exists key
+
+        for (Object key : keys) {
+            DataType type = redisTemplate.type(key); // type key
+            System.out.println(type.name());
+        }
+
+        redisTemplate.delete("mylist"); // del key
+    }
 ```
 
 
