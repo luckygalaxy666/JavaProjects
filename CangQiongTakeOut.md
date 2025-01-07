@@ -24,6 +24,7 @@
         * [集合](#集合)
         * [有序集合](#有序集合)
         * [通用命令](#通用命令)
+* [HTTPClient](#httpclient)
 
 <!-- vim-markdown-toc -->
 
@@ -469,6 +470,88 @@ Redis 是一个开源的**内存数据库**，它支持多种数据结构，如�
         }
 
         redisTemplate.delete("mylist"); // del key
+    }
+```
+
+## HTTPClient
+
+HttpClient 是 Apache 提供的一个 Java HTTP 客户端库，用于发送 HTTP 请求。HttpClient 提供了多种请求方法，如 GET、POST、PUT、DELETE 等，支持多种认证方式，如 Basic 认证、Digest 认证等。
+
+**1. 引入依赖**
+
+```xml
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.5.13</version>
+</dependency>
+```
+
+**2. 发送 GET 请求**
+
+```java
+@Test
+    public void testGET() throws Exception {
+        // 创建HttpClient对象
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        // 创建请求对象
+        HttpGet httpGet = new HttpGet("http://localhost:8080/user/shop/status");
+
+        // 发送请求，接收响应结果
+        CloseableHttpResponse response = httpClient.execute(httpGet);
+
+        // 获取服务端返回的状态码
+        int statusCode = response.getStatusLine().getStatusCode();
+        System.out.println("服务端返回的状态码 = " + statusCode);
+
+        // 获取服务端返回的数据
+        HttpEntity entity = response.getEntity();
+        String body = EntityUtils.toString(entity);
+        System.out.println("服务端返回的数据 = " + body);
+
+        // 关闭资源
+        response.close();
+        httpClient.close();
+    }
+}
+```
+
+**3. 发送 POST 请求**
+
+```java
+@Test
+    public void testPOST() throws Exception {
+        // 创建HttpClient对象
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        // 创建请求对象
+        HttpPost httpPost = new HttpPost("http://localhost:8080/admin/employee/login");
+
+        // 发送请求，接收响应结果
+        // 设置请求头
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("username", "admin");
+        jsonObject.put("password", "123456");
+        StringEntity stringEntity = new StringEntity(jsonObject.toString(), "UTF-8");
+//        stringEntity.setContentEncoding("UTF-8");
+        stringEntity.setContentType("application/json");
+
+        httpPost.setEntity(stringEntity);
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+
+        // 获取服务端返回的状态码
+        int statusCode = response.getStatusLine().getStatusCode();
+        System.out.println("服务端返回的状态码 = " + statusCode);
+
+        // 获取服务端返回的数据
+        HttpEntity entity = response.getEntity();
+        String body = EntityUtils.toString(entity);
+        System.out.println("服务端返回的数据 = " + body);
+
+        // 关闭资源
+        response.close();
+        httpClient.close();
     }
 ```
 
