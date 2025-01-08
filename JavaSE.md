@@ -120,6 +120,10 @@
     * [**解析注解**](#解析注解)
     * [**注解的应用**](#注解的应用)
 * [动态代理](#动态代理)
+* [常用数据类型转换](#常用数据类型转换)
+    * [String 与 char[] 的转换](#string-与-char-的转换)
+    * [List<Integer> 与 int[] 的转换](#listinteger-与-int-的转换)
+    * [优先队列 PriorityQueue](#优先队列-priorityqueue)
 
 <!-- vim-markdown-toc -->
 
@@ -4615,4 +4619,64 @@ public class Test {
     }
 }
 ```
+
+## 常用数据类型转换
+
+### String 与 char[] 的转换
+
+String -> char[]：toCharArray()
+```Java
+        String str = "hello";
+        char[] chars = str.toCharArray();
+        System.out.println(Arrays.toString(chars));
+```
+
+char[] -> String：new String(char[])
+```Java
+char[] chars = {'h', 'e', 'l', 'l', 'o'};
+        String str = new String(chars);
+        System.out.println(str);
+```
+
+char[] -> String：String.valueOf(char[],start,end)
+```Java
+char[] chars = {'h', 'e', 'l', 'l', 'o'};
+        String str = String.valueOf(chars, 1, 3);
+        System.out.println(str);
+// 输出：ell
+```
+
+### List<Integer> 与 int[] 的转换
+
+List<Integer> -> int[]：流转换
+```Java
+List<Integer> list = new ArrayList<>();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        int[] arr = list.stream().mapToInt(Integer::intValue).toArray();
+        System.out.println(Arrays.toString(arr));
+```
+
+int[] -> List<Integer>： Arrays.asList()
+```Java
+int[] arr = {1, 2, 3};
+        List<Integer> list = Arrays.asList(1, 2, 3);
+        System.out.println(list);// 输出：[1, 2, 3]
+```
+
+
+### 优先队列 PriorityQueue
+```Java
+PriorityQueue<Integer> queue = new PriorityQueue<>();
+```
+
+如果对象是自定义可以用lambda表达式实现Comparator接口
+
+根据年龄升序排列
+```Java
+PriorityQueue<Student> queue = new PriorityQueue<>((o1, o2) -> o1.getAge() - o2.getAge());
+```
+
+
 

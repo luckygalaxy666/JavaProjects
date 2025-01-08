@@ -25,6 +25,10 @@
         * [有序集合](#有序集合)
         * [通用命令](#通用命令)
 * [HTTPClient](#httpclient)
+    * [使用场景](#使用场景)
+* [Spring Cache](#spring-cache)
+    * [什么是 Spring Cache](#什么是-spring-cache)
+    * [常用注解](#常用注解-1)
 
 <!-- vim-markdown-toc -->
 
@@ -552,6 +556,73 @@ HttpClient 是 Apache 提供的一个 Java HTTP 客户端库，用于发送 HTTP
         // 关闭资源
         response.close();
         httpClient.close();
+    }
+```
+
+### 使用场景
+
+在苍穹外卖项目中，用户端使用小程序登录时，会向后端发送code,后端需要向微信服务器发送请求，获取用户的openid（用户微信的唯一标识），利用open_id 查询数据库中是否存储该用户，如果没有则更新数据库
+
+## Spring Cache
+
+### 什么是 Spring Cache
+Spring Cache 是 Spring Framework 提供的一个缓存抽象，它允许开发者在应用程序中轻松地添加缓存功能。Spring Cache 支持多种缓存实现，如 EhCache、Caffeine、Redis 等。通过使用 Spring Cache，开发者可以将方法的返回值缓存起来，以减少重复计算，提高应用程序的性能。
+
+### 常用注解
+
+- **@EnableCaching**：用于开启 Spring Cache 功能。通常在配置类上使用。
+- **@Cacheable**：用于标注一个方法，该方法的返回值将被缓存起来。下次调用该方法时，如果缓存中存在对应的值，则直接从缓存中获取，而不再执行方法体。 **在调用方法之前会通过动态代理先从缓存中查找**
+- **@CachePut**：用于标注一个方法，该方法的返回值将被缓存起来。与 @Cacheable 不同的是，每次调用该方法时，都会执行方法体，并将返回值更新到缓存中。 **只存不取**
+- **@CacheEvict**：用于标注一个方法，该方法执行后，将从缓存中移除对应的值。可以通过设置 allEntries 属性为 true，来清空整个缓存。
+
+**示例：**
+
+在启动类中添加@EnableCaching注解，开启缓存功能
+```java
+@Slf4j
+@SpringBootApplication
+@EnableCaching // 开启缓存
+public class CacheDemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(CacheDemoApplication.class,args);
+        log.info("项目启动成功...");
+    }
+}
+```
+
+
+在Controller中添加@CachePut注解，将user对象以 key为 ``userCache::id``的形式存储到缓存中
+```java
+@PostMapping
+    @CachePut(cacheNames = "userCache", key = "#user.id")
+    public User save(@RequestBody User user){
+        userMapper.insert(user);
+        return user;
+    }
+```
+
+在Controller中添加@Cacheable注解，查询user对象时，先从缓存中获取，如果缓存中没有，则从数据库中查询，并将查询结果存储到缓存中
+```java
+@GetMapping
+    @Cacheable(cacheNames = "userCache", key = "#id")
+    public User getById(Long id){
+        User user = userMapper.getById(id);
+        return user;
+    }
+```
+
+删除user对象时，先从缓存中移除对应的值
+```java
+@DeleteMapping
+    @CacheEvict(cacheNames = "userCache", key = "#id") // 删除某个key
+    public void deleteById(Long id){
+        userMapper.deleteById(id);
+    }
+
+	@DeleteMapping("/delAll")
+    @CacheEvict(cacheNames = "userCache", allEntries = true)  // 清空缓存
+    public void deleteAll(){
+        userMapper.deleteAll();
     }
 ```
 
