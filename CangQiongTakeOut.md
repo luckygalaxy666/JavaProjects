@@ -29,6 +29,12 @@
 * [Spring Cache](#spring-cache)
     * [什么是 Spring Cache](#什么是-spring-cache)
     * [常用注解](#常用注解-1)
+* [Spring Task](#spring-task)
+    * [什么是 Spring Task](#什么是-spring-task)
+    * [使用方式](#使用方式-1)
+* [WebSocket](#websocket)
+    * [什么是 WebSocket](#什么是-websocket)
+    * [使用方式](#使用方式-2)
 
 <!-- vim-markdown-toc -->
 
@@ -625,5 +631,137 @@ public class CacheDemoApplication {
         userMapper.deleteAll();
     }
 ```
+
+## Spring Task
+
+### 什么是 Spring Task
+
+Spring Task 是 Spring Framework 提供的一个任务调度框架，用于执行定时任务。Spring Task 支持多种任务调度方式，如固定间隔调度、固定延迟调度、cron 表达式调度等。通过使用 Spring Task，开发者可以轻松地实现定时任务的调度。
+
+### 使用方式
+
+* 1. 在启动类上添加@EnableScheduling注解，开启定时任务功能
+
+* 2. 在定时任务类上添加@Component注解，将定时任务类交给Spring容器管理
+
+* 3. 在定时任务方法上添加@Scheduled注解，指定任务调度方式
+
+**示例：**
+
+每隔一分钟查询超时订单，将超时未支付的订单状态修改为取消
+```Java
+@Scheduled(cron = "0 * * * * ? ")
+    public void processTimeOutOrder() {
+        log.info("处理超时订单");
+        //查询超时订单
+        LocalDateTime time = LocalDateTime.now().plusMinutes(-15);
+        List<Orders> list = orderMapper.selectTimeOutOrder(Orders.PENDING_PAYMENT,time);
+
+        if(list != null && list.size() > 0)
+        {
+            for (Orders order : list) {
+                //修改订单状态为取消
+                order.setStatus(Orders.CANCELLED);
+                order.setCancelTime(LocalDateTime.now());
+                order.setCancelReason("超时未支付，系统自动取消");
+                orderMapper.update(order);
+            }
+        }
+    }
+```
+
+## WebSocket
+
+### 什么是 WebSocket
+
+WebSocket 是一种在单个 TCP 连接上进行全双工通信的协议。WebSocket 通常用于实时通信，如在线聊天、实时数据推送等。WebSocket 与 HTTP 协议不同，它是一种持久连接，客户端与服务器之间可以双向通信，而不是单向请求-响应。
+
+ ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202501121331152.png)
+
+### 使用方式
+
+* 1. 在 Spring Boot 中使用 WebSocket，首先需要引入 Spring Boot 的 WebSocket 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-websocket</artifactId>
+</dependency>
+```
+
+* 2. 创建 WebSocket 配置类，用于注册 WebSocket 的 Bean
+
+```java
+@Configuration
+public class WebSocketConfiguration {
+
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter() {
+        return new ServerEndpointExporter();
+    }
+
+}
+```
+
+* 3. 创建 WebSocket 处理类，用于处理 WebSocket 的连接、断开、消息发送等操作
+
+```java
+@Component
+@ServerEndpoint("/ws/{sid}")
+@Slf4j
+public class  WebSocketServer {
+
+    //存放会话对象
+    private static Map<String, Session> sessionMap = new HashMap();
+
+    /**
+     * 连接建立成功调用的方法
+     */
+    @OnOpen
+    public void onOpen(Session session, @PathParam("sid") String sid) {
+        System.out.println("客户端：" + sid + "建立连接");
+        sessionMap.put(sid, session);
+    }
+
+    /**
+     * 收到客户端消息后调用的方法
+     *
+     * @param message 客户端发送过来的消息
+     */
+    @OnMessage
+    public void onMessage(String message, @PathParam("sid") String sid) {
+        System.out.println("收到来自客户端：" + sid + "的信息:" + message);
+    }
+
+    /**
+     * 连接关闭调用的方法
+     *
+     * @param sid
+     */
+    @OnClose
+    public void onClose(@PathParam("sid") String sid) {
+        System.out.println("连接断开:" + sid);
+        sessionMap.remove(sid);
+    }
+
+    /**
+     * 群发
+     *
+     * @param message
+     */
+    public void sendToAllClient(String message) {
+        Collection<Session> sessions = sessionMap.values();
+        for (Session session : sessions) {
+            try {
+                //服务器向客户端发送消息
+                log.info("服务器向客户端发送消息");
+                session.getBasicRemote().sendText(message);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+}
 
 

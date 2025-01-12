@@ -2517,7 +2517,7 @@ public class Test {
 ```
 
 ### **Stream流的常用方法：**
-``
+
 | 方法名                                                                | 说明 |
 | ---                                                                   | --- |
 | public Stream<T> filter(Predicate<? super T> predicate)               | 过滤集合中的元素 |
@@ -2537,7 +2537,7 @@ public class Test {
 | public Optional<T> max(Comparator<? super T> comparator)              | 获取最大值 |
 | public Optional<T> min(Comparator<? super T> comparator)              | 获取最小值 |
 
-** 返回值为Stream的方法称为中间操作，返回值不为Stream的方法称为终结操作**
+**返回值为Stream的方法称为中间操作，返回值不为Stream的方法称为终结操作**
 
 ### **collect方法的使用**
 
