@@ -123,6 +123,9 @@
 * [常用数据类型转换](#常用数据类型转换)
     * [String 与 char[] 的转换](#string-与-char-的转换)
     * [List<Integer> 与 int[] 的转换](#listinteger-与-int-的转换)
+    * [节选int[] 的一部分](#节选int-的一部分)
+    * [List<String> 与String 的转换](#liststring-与string-的转换)
+* [char 与 List<String> 的转换](#char-与-liststring-的转换)
     * [优先队列 PriorityQueue](#优先队列-priorityqueue)
 
 <!-- vim-markdown-toc -->
@@ -4665,6 +4668,36 @@ int[] arr = {1, 2, 3};
         System.out.println(list);// 输出：[1, 2, 3]
 ```
 
+### 节选int[] 的一部分
+
+利用流的方式
+
+```Java
+int[] arr = {1, 2, 3, 4, 5};
+        int[] newArr = Arrays.stream(arr, 1, 3).toArray();       
+//int[] newArr = Arrays.copyOfRange(arr, 1, 3);
+        System.out.println(Arrays.toString(newArr));
+```
+
+### List<String> 与String 的转换
+
+List<String> -> StringUtils.join()
+```Java
+List<String> list = new ArrayList<>();
+        list.add("hello");
+        list.add("world");
+        String str = StringUtils.join(list, ",");
+        System.out.println(str);
+```
+
+## char[][] 与 List<String> 的转换
+
+char[][] -> List<String>：Arrays.stream().map().collect()
+```Java
+char[][] chars = {{'h', 'e', 'l', 'l', 'o'}, {'w', 'o', 'r', 'l', 'd'}};
+        List<String> list = Arrays.stream(chars).map(String::new).collect(Collectors.toList());
+        System.out.println(list);
+```
 
 ### 优先队列 PriorityQueue
 ```Java
