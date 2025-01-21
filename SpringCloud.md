@@ -15,6 +15,11 @@
     * [MybatisPlus插件 代码生成器](#mybatisplus插件-代码生成器)
     * [DB静态工具类](#db静态工具类)
     * [逻辑删除](#逻辑删除)
+* [Docker](#docker)
+    * [DockerFile](#dockerfile)
+    * [Docker 网络](#docker-网络)
+        * [常用命令：](#常用命令)
+    * [DockerCompose](#dockercompose)
 
 <!-- vim-markdown-toc -->
 
@@ -326,5 +331,57 @@ public class IAddressServiceTest {
 
 底层将removeById()方法转换为update语句，将deleted字段更新为0
 
-
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202501161703227.png)
+
+
+## Docker
+
+### DockerFile
+
+DockerFile是一个文本文件，用来配置镜像的构建过程，DockerFile包含了一条条指令，每一条指令构建一层，构建过程是逐步的，每一条指令的内容会被DockerFile解析为一层，每一层都会在前一层的基础上进行修改。
+
+**DockerFile指令：**
+
+- FROM：指定基础镜像
+- MAINTAINER：指定镜像的作者
+- RUN：执行命令
+- CMD：容器启动时执行的命令
+- EXPOSE：暴露端口
+- ENV：设置环境变量
+- ADD：复制文件
+- COPY：复制文件
+
+### Docker 网络
+
+Docker网络是一个独立的网络，Docker容器可以连接到这个网络，这样就可以实现容器之间的通信。
+
+#### 常用命令：
+
+| 命令 | 说明 |
+| --- | --- |
+| docker network ls | 查看所有网络 |
+| docker network create --driver bridge my-bridge | 创建一个网络 |
+| docker network inspect my-bridge | 查看网络详细信息 |
+| docker network connect my-bridge my-container | 将容器连接到网络 |
+| docker network disconnect my-bridge my-container | 将容器从网络中断开 |
+| docker network rm my-bridge | 删除网络 |
+| docker network prune | 删除所有未使用的网络 |
+
+使用Docker网络，可以实现容器之间的通信，可以将容器连接到同一个网络，这样就可以实现容器之间的通信。 并且可以通过容器名直接ping。
+
+### DockerCompose
+
+DockerCompose是一个用于定义和运行多容器Docker应用程序的工具，通过一个单独的docker-compose.yml配置文件来配置应用程序的服务，然后使用docker-compose up命令，就可以根据配置文件创建并启动所有的容器。
+
+**DockerCompose常用命令：**
+
+| 命令 | 说明 |
+| --- | --- |
+| docker-compose up | 创建并启动所有容器 |
+| docker-compose up -d | 创建并启动所有容器，后台运行 |
+| docker-compose down | 停止并删除所有容器 |
+| docker-compose ps | 查看容器状态 |
+| docker-compose logs | 查看容器日志 |
+| docker-compose exec | 进入容器 |
+| docker-compose restart | 重启容器 |
+
