@@ -20,6 +20,12 @@
     * [Docker 网络](#docker-网络)
         * [常用命令：](#常用命令)
     * [DockerCompose](#dockercompose)
+* [微服务](#微服务)
+    * [Nacos](#nacos)
+    * [RestTemplate](#resttemplate)
+    * [注册中心](#注册中心)
+        * [服务发现](#服务发现)
+        * [OpenFeign](#openfeign)
 
 <!-- vim-markdown-toc -->
 
@@ -384,4 +390,91 @@ DockerCompose是一个用于定义和运行多容器Docker应用程序的工具�
 | docker-compose logs | 查看容器日志 |
 | docker-compose exec | 进入容器 |
 | docker-compose restart | 重启容器 |
+
+## 微服务
+
+### Nacos
+
+Nacos是一个动态服务发现、配置管理和服务管理平台，Nacos支持几乎所有主流类型的服务，例如Kubernetes和Spring Cloud等，Nacos提供了一种简单易用的方式来实现服务注册、发现、配置管理和服务管理。
+
+**Nacos的功能：**
+
+通过在不同的微服务的yml配置文件中配置Nacos的地址，就可以实现服务的注册和发现，Nacos会自动将服务注册到Nacos的注册中心，然后其他服务就可以通过Nacos的注册中心来获取服务的信息，然后调用服务。
+
+**Nacos的配置：**
+
+```yaml
+
+spring:
+  application:
+    name: cart-service # 微服务名称
+  cloud:
+    nacos:
+      server-addr: 172.27.62.11:8848 # Nacos的地址 注册在虚拟机的docker容器中
+
+```
+
+### RestTemplate
+
+RestTemplate是Spring提供的用于访问Rest服务的客户端，RestTemplate提供了多种便捷访问远程Http服务的方法，是一种简单便捷的访问Rest服务的模板类，是Spring提供的用于访问Rest服务的客户端。
+
+1. 注入到Spring容器中
+
+
+```Java
+@Bean
+public RestTemplate restTemplate()
+{
+    return new RestTemplate();
+}
+```
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250122143431177.png)
+
+### 注册中心 
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250122144142004.png)
+
+#### 服务发现
+
+服务发现是指服务提供者将自己的服务注册到注册中心，服务消费者从注册中心获取服务提供者的信息，然后调用服务提供者的服务。
+
+**使用DeliveryClient获取服务提供者的信息，然后调用服务提供者的服务。**
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250122175452413.png)
+
+#### OpenFeign
+
+OpenFeign是一个声明式的Web服务客户端，它使得编写Web服务客户端变得更加简单，只需要创建一个接口并用注解来配置它，它具有可插拔的注解支持，包括Feign注解和JAX-RS注解，OpenFeign支持可插拔的编码器和解码器，Spring Cloud对Spring Cloud OpenFeign进行了封装，使得使用更加方便。
+
+
+**示例：**
+
+改造DeliveryClient的实现方法，使用OpenFeign，可以做到类似调用本地``Service``方法的效果。
+
+需要引入``spring-cloud-starter-openfeign``依赖，并在启动类上添加``@EnableFeignClients``注解
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250122182321808.png)
+
+**日志配置：**
+
+
+配置一个config类，设置日志级别，但不要加@Component注解，否则会被扫描到，导致所有的FeignClient都会使用这个配置。
+```Java
+public class DefaultFeignConfig {
+
+    @Bean
+    public Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
+    }
+}
+```
+
+在需要日志的启动类上加上注解，使日志配置生效
+
+```Java
+@EnableFeignClients(basePackages = "com.hmall.api.client",defaultConfiguration = DefaultFeignConfig.class)
+```
+
+
 
