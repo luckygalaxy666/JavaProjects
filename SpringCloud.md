@@ -26,6 +26,8 @@
     * [注册中心](#注册中心)
         * [服务发现](#服务发现)
         * [OpenFeign](#openfeign)
+    * [网关](#网关)
+        * [网管请求处理流程](#网管请求处理流程)
 
 <!-- vim-markdown-toc -->
 
@@ -452,6 +454,7 @@ OpenFeign是一个声明式的Web服务客户端，它使得编写Web服务客�
 
 改造DeliveryClient的实现方法，使用OpenFeign，可以做到类似调用本地``Service``方法的效果。
 
+
 需要引入``spring-cloud-starter-openfeign``依赖，并在启动类上添加``@EnableFeignClients``注解
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250122182321808.png)
@@ -476,5 +479,60 @@ public class DefaultFeignConfig {
 @EnableFeignClients(basePackages = "com.hmall.api.client",defaultConfiguration = DefaultFeignConfig.class)
 ```
 
+### 网关
+
+网关是一个系统的唯一入口，它负责将外部请求转发到内部服务，网关可以实现路由转发，负载均衡，安全认证，限流等功能。
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250123152041442.png)
 
 
+**Spring Cloud Gateway**
+
+Spring Cloud Gateway是Spring Cloud的一个全新项目，它是基于Spring 5，Spring Boot 2和Project Reactor等技术开发的网关，Spring Cloud Gateway旨在提供一种简单而有效的方式来对API进行路由，以及提供一些强大的过滤功能，Spring Cloud Gateway可以作为Zuul的替代方案。
+
+使用方法： 
+
+创建一个模块，引入``spring-cloud-starter-gateway``依赖，然后在配置文件中配置路由规则。
+
+**配置文件：**
+
+```yaml
+server:
+    port:8080
+
+spring:
+    application:
+        name: hm-gateway
+    cloud:
+        nacos:
+            discovery:
+                server-addr: 172.27.62.11:8848
+        gateway:
+            routes:
+                - id: item # 路由规则id，自定义，唯一
+                  uri: lb://item-service # 路由的目标服务，lb代表负载均衡，会从注册中心拉取服务列表
+                  predicates: # 路由断言，判断当前请求是否符合当前规则，符合则路由到目标服务
+                      - Path=/items/**,/search/** # 这里是以请求路径作为判断规则
+                - id: cart
+                  uri: lb://cart-service
+                  predicates:
+                      - Path=/carts/**
+                - id: user
+                  uri: lb://user-service
+                  predicates:
+                      - Path=/users/**,/addresses/**
+                - id: trade
+                  uri: lb://trade-service
+                  predicates:
+                      - Path=/orders/**
+                - id: pay
+                  uri: lb://pay-service
+                  predicates:
+                      - Path=/pay-orders/**
+```
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250123155855803.png)
+
+#### 网管请求处理流程
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250123162330094.png)
