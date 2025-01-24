@@ -28,6 +28,9 @@
         * [OpenFeign](#openfeign)
     * [网关](#网关)
         * [网管请求处理流程](#网管请求处理流程)
+        * [网关过滤器](#网关过滤器)
+    * [用户信息全局处理器](#用户信息全局处理器)
+    * [配置管理与热更新](#配置管理与热更新)
 
 <!-- vim-markdown-toc -->
 
@@ -536,3 +539,56 @@ spring:
 #### 网管请求处理流程
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250123162330094.png)
+
+#### 网关过滤器
+
+网关过滤器是Spring Cloud Gateway的核心组件，它可以实现对请求的拦截和处理，可以实现对请求的修改，日志记录，安全认证等功能。
+
+**自定义Global过滤器：**
+
+基本逻辑如下，可以根据需求从`exchange`中获取请求信息，然后进行处理，可以放行，也可以拦截。
+
+```Java
+@Component
+public class PrintAnyGlobalFilter implements GlobalFilter, Ordered {
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 编写过滤器逻辑
+        System.out.println("未登录，无法访问");
+        // 放行
+        // return chain.filter(exchange);
+
+        // 拦截
+        ServerHttpResponse response = exchange.getResponse();
+        response.setRawStatusCode(401);
+        return response.setComplete();
+    }
+
+    @Override
+    public int getOrder() {
+        // 过滤器执行顺序，值越小，优先级越高
+        return 0;
+    }
+}
+```
+
+### 用户信息全局处理器
+
+在微服务中，可以在公共模块中编写一个全局处理器，用于提取用户信息，可以在网关过滤器处理时请求头中添加用户信息，然后在全局处理器中提取用户信息，这样就可以在微服务中获取用户信息。
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250124175625833.png)
+
+### 配置管理与热更新
+
+`nacos`提供了配置管理功能，可以将配置文件存储在`nacos`中，然后在微服务中通过`nacos`的配置中心来获取配置文件，这样就可以实现配置文件的统一管理和热更新。
+
+**使用方法：**
+
+1. 引入相关依赖
+2. 创建bootstrap.yaml
+3. 在nacos中添加配置
+4. 修改application.yaml
+
+具体看**黑马商城微服务04**的文档，很重要！！！
+
+其中在``bootstrap.yaml``中可以配置热更新的文件名，注册在nacos中，然后在`config`包下的实现类注入对应信息后，nacos的配置文件内容修改，该注入信息也动态修改而无需重启服务
