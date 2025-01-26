@@ -31,6 +31,14 @@
         * [网关过滤器](#网关过滤器)
     * [用户信息全局处理器](#用户信息全局处理器)
     * [配置管理与热更新](#配置管理与热更新)
+* [微服务保护和分布式管理](#微服务保护和分布式管理)
+    * [雪崩](#雪崩)
+    * [Sentinal](#sentinal)
+    * [分布式事务 Seata](#分布式事务-seata)
+        * [Seata的架构](#seata的架构)
+        * [XA模式](#xa模式)
+        * [AT模式](#at模式)
+* [消息队列MQ](#消息队列mq)
 
 <!-- vim-markdown-toc -->
 
@@ -592,3 +600,65 @@ public class PrintAnyGlobalFilter implements GlobalFilter, Ordered {
 具体看**黑马商城微服务04**的文档，很重要！！！
 
 其中在``bootstrap.yaml``中可以配置热更新的文件名，注册在nacos中，然后在`config`包下的实现类注入对应信息后，nacos的配置文件内容修改，该注入信息也动态修改而无需重启服务
+
+
+## 微服务保护和分布式管理
+
+### 雪崩
+
+雪崩效应是指在分布式系统中，由于某个服务的不可用导致其他服务的不可用，最终导致整个系统的不可用，这种现象就叫做雪崩效应。
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250125121128010.png)
+
+### Sentinal
+
+Sentinel是阿里巴巴开源的一款面向分布式服务架构的轻量级高可用流量控制组件，Sentinel可以实现流量控制，熔断降级，系统负载保护等功能，可以保护分布式系统的稳定性。
+
+使用方法：
+
+1. 引入依赖
+
+```xml
+<!--sentinel-->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId> 
+    <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+</dependency>
+```
+
+2. 配置文件
+
+```yaml
+spring:
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8090 # 服务端口
+      http-method-specify: true # 开启请求方式前缀 将请求方式和请求路径拼接在一起作为簇点
+
+3. 启动Sentinal
+
+
+```cmd
+java -Dserver.port=8090 -Dcsp.sentinel.dashboard.server=localhost:8090 -Dproject.name=sentinel-dashboard -jar sentinel-dashboard.jar
+```
+
+### 分布式事务 Seata
+
+Seata是一款开源的分布式事务解决方案，Seata提供了AT，TCC，SAGA，XA等多种事务模式，可以实现分布式事务的一致性。
+
+#### Seata的架构
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250126172100845.png)
+
+#### XA模式
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250126172154736.png)
+
+#### AT模式
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250126172226366.png)
+
+## 消息队列MQ
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250126173235524.png)
