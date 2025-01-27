@@ -39,6 +39,8 @@
         * [XA模式](#xa模式)
         * [AT模式](#at模式)
 * [消息队列MQ](#消息队列mq)
+    * [RabbitMQ](#rabbitmq)
+        * [基本架构](#基本架构)
 
 <!-- vim-markdown-toc -->
 
@@ -662,3 +664,14 @@ Seata是一款开源的分布式事务解决方案，Seata提供了AT，TCC，SA
 ## 消息队列MQ
 
 ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250126173235524.png)
+
+
+### RabbitMQ
+
+RabbitMQ是一个开源的消息代理，用于实现消息队列，RabbitMQ是一个高性能的消息中间件，可以实现消息的生产者和消费者之间的解耦，RabbitMQ支持多种消息协议，包括AMQP，STOMP，MQTT等。
+
+#### 基本架构
+
+![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/20250127100128900.png)
+
+
