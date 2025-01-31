@@ -6,12 +6,13 @@
 * [JavaWeb](#javaweb)
 * [剑指Offer75](#剑指offer75)
 * [苍穹外卖](#苍穹外卖)
+* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务)
     * [具体学习时间](#具体学习时间)
 * [代码随想录](#代码随想录)
     * [具体学习时间](#具体学习时间-1)
 * [JAVA虚拟机](#java虚拟机)
     * [具体学习时间](#具体学习时间-2)
-* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务)
+* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务-1)
     * [具体学习时间](#具体学习时间-3)
 
 <!-- vim-markdown-toc -->
@@ -32,6 +33,13 @@
 ## 苍穹外卖
 * **25.01.02** ~ **25.01.14**
 * [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/CangQiongTakeOut.md)
+
+## 黑马商城（SpringCloud微服务）
+* **25.01.16** ~ **至今**
+* [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/SpringCloud.md)
+
+
+
 
 ### 具体学习时间
 
@@ -93,6 +101,7 @@
     * **重点** 动态规划 -- 52 回文字串（dp[i][j] = dp[i+1][j-1] && s[i] == s[j]））
     * **重点** 单调栈 -- 4 接雨水（双指针想法和单调栈想法）
     * **重点** 单调栈 -- 5 柱形图中最大的矩形（双指针和单调栈）
+* **25.01.31** 图论 -- 1 ~ 10
 
 ## JAVA虚拟机
 * **25.01.09** ~ 至今
@@ -115,3 +124,5 @@
 * **25.01.25 ~ 25 01.26** 微服务保护与分布式管理
 * **25.01.27** MQ消息队列基础
     * **重点** 利用`MessageConverter`将消息转换为jsn格式，并利用重写`fromMessage`和`toMessage`方法在请求头传递和解析用户Id，实现类似于拦截器的功能
+* **25.01.31** MQ消息队列高级 (代码实现没有细看和操作)
+    
