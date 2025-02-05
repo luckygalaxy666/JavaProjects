@@ -6,13 +6,12 @@
 * [JavaWeb](#javaweb)
 * [剑指Offer75](#剑指offer75)
 * [苍穹外卖](#苍穹外卖)
-* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务)
     * [具体学习时间](#具体学习时间)
 * [代码随想录](#代码随想录)
     * [具体学习时间](#具体学习时间-1)
 * [JAVA虚拟机](#java虚拟机)
     * [具体学习时间](#具体学习时间-2)
-* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务-1)
+* [黑马商城（SpringCloud微服务）](#黑马商城springcloud微服务)
     * [具体学习时间](#具体学习时间-3)
 
 <!-- vim-markdown-toc -->
@@ -33,13 +32,6 @@
 ## 苍穹外卖
 * **25.01.02** ~ **25.01.14**
 * [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/CangQiongTakeOut.md)
-
-## 黑马商城（SpringCloud微服务）
-* **25.01.16** ~ **至今**
-* [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/SpringCloud.md)
-
-
-
 
 ### 具体学习时间
 
@@ -104,7 +96,12 @@
 * **25.01.31** 图论 -- 1 ~ 10
 * **25.02.01** 图论 -- 11 ~ 18
 * **25.02.04** 图论 -- 19 ~ 23
-
+* **25.02.05** 图论 -- 24 ~ 29
+    * **重点** 图论 -- 28 bellmen-ford算法求最多k次中转的最短路径（**层级更新** 额外记录上次迭代时的距离）
+    * **重点** 图论 -- 29 A*算法（**启发式搜索** 估计函数+优先队列 **强化版BFS**）
+* **25.02.13** 额外题目 -- 数组 哈希表 字符串
+    * **重点** 额外题目 -- 重排链表（找到中点+反转后半部分+合并两个链表）
+    * **重点** 额外题目 -- 回文链表（找到中点+反转后半部分+比较两个链表）
 ## JAVA虚拟机
 * **25.01.09** ~ 至今
 
@@ -115,8 +112,9 @@
 
 ## 黑马商城（SpringCloud微服务）
 
-* **25.01.16** ~  至今
-
+* **25.01.16** ~  **25.02.12**
+* [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/SpringCloud.md)
+ 
 ### 具体学习时间
 
 * **25.01.16 ~ 25.01.17** MybatisPlus
@@ -130,3 +128,6 @@
 * **25.02.01** ElasticSearch基础
 * **25.02.02** ElasticSearch高级
 * **25.02.04** ElasticSearch作业
+* **25.02.05** Redis面试相关
+* **25.02.06** 微服务面试相关
+* **25.02.10 ~ 25.02.12** 复习[黑马商城微服务资料](https://b11et3un53m.feishu.cn/wiki/R4Sdwvo8Si4kilkSKfscgQX0niB)
