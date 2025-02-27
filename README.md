@@ -6,8 +6,11 @@
 * [JavaWeb](#javaweb)
 * [剑指Offer75](#剑指offer75)
 * [苍穹外卖](#苍穹外卖)
-    * [具体学习时间](#具体学习时间)
 * [代码随想录](#代码随想录)
+* [Java并发编程](#java并发编程)
+* [JavaGuide](#javaguide)
+    * [具体学习时间](#具体学习时间)
+* [代码随想录](#代码随想录-1)
     * [具体学习时间](#具体学习时间-1)
 * [JAVA虚拟机](#java虚拟机)
     * [具体学习时间](#具体学习时间-2)
@@ -15,6 +18,8 @@
     * [具体学习时间](#具体学习时间-3)
 * [JUC并发编程](#juc并发编程)
     * [具体学习时间](#具体学习时间-4)
+* [JavaGuide](#javaguide-1)
+    * [具体学习时间](#具体学习时间-5)
 
 <!-- vim-markdown-toc -->
 
@@ -34,6 +39,17 @@
 ## 苍穹外卖
 * **25.01.02** ~ **25.01.14**
 * [整理资料](https://github.com/luckygalaxy666/JavaProjects/blob/master/CangQiongTakeOut.md)
+
+## 代码随想录
+* **24.12.31** ~ **25.02.19**
+
+## Java并发编程
+* **25.02.14** ~ **25.02.25**
+* [整理资料](https://gitee.com/gu_chun_bo/java-construct/blob/master/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/java%E5%B9%B6%E5%8F%911.md)
+
+## JavaGuide
+* **25.02.26** ~ 至今
+
 
 ### 具体学习时间
 
@@ -141,7 +157,7 @@
 
 ## JUC并发编程
 
-* **25.02.14** ~ 至今
+* **25.02.14** ~ **25.02.25**
 * [整理资料](https://gitee.com/gu_chun_bo/java-construct/blob/master/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/java%E5%B9%B6%E5%8F%911.md)
 
 ### 具体学习时间
@@ -169,6 +185,11 @@
         )
 * **25.02.22** JUC并发编程 -- 233 ~ 270
     * **主要学习内容** ForkJoinPool（递归线程池 分治）、CountDownLatch、Semaphore(信号量)、reenTrantReadWriteLock(读写锁)
-        
-        
-    
+
+## JavaGuide
+* **25.02.26** ~ 至今
+* [整理资料](https://javaguide.cn/home.html>)
+
+### 具体学习时间
+* **25.02.26** 并发编程 -- 常见面试题（上）（中）AQS详解 
+* **25.02.27** 并发编程 -- 常见面试题（下） 乐观锁和悲观锁 CAS详解 JMM详解
