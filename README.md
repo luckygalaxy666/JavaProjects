@@ -363,7 +363,7 @@ public static void main(String[] args) {
                     * 最后日志索引
                     * 最后日志任期
                     * 状态机数据
-                    * 快照策略（SnapshotStrategy）
+                    * 1快照策略（SnapshotStrategy）
                     * 快照版本
                 * 使用策略模式实现了不同的快照策略
                     * 基于日志条数的快照策略（1000条）
