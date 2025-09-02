@@ -920,3 +920,15 @@ Agent的核心能力包括几个方面：一是感知能力，能够理解用户
     *  协程
         * 协程是一种轻量级的用户态线程，它允许在单个线程内实现多任务并发。与传统的线程相比，协程具有更低的创建和切换开销，因为它们不需要操作系统的调度和上下文切换。
         * java中的虚拟线程，由JVM管理，而不是操作系统管理。可以通过Thread.startVirtualThread()来创建，或者使用ExecutorService来管理。虚拟线程在执行I/O操作时会自动让出CPU，让其他虚拟线程执行，这样可以大大提高系统的并发性能。
+    * 堆内内存和堆外内存泄露的定位方法
+        * 堆内存泄露
+            * 使用JVM自带的工具，比如jmap、jstack、jvisualvm等，来生成堆内存快照（heap dump），然后使用Eclipse MAT（Memory Analyzer Tool）等工具来分析堆内存快照，找出占用内存较多的对象和引用链，从而定位内存泄露的原因。
+            * 通过代码审查，检查是否存在未关闭的资源（比如数据库连接、文件流等）、未注销的监听器、静态集合类等，这些都是常见的内存泄露源。
+            * 使用Java Profiler工具，比如YourKit、JProfiler等，来监控应用程序的内存使用情况，找出内存增长较快的对象和方法，从而定位内存泄露的原因。
+        * 堆外内存泄露
+            * 使用JVM参数-XX:+UnlockDiagnosticVMOptions -XX:+PrintNMTStatistics来启用Native Memory Tracking（NMT），这样可以监控JVM的堆外内存使用情况，并生成堆外内存快照，从而分析堆外内存泄露的原因。
+            * 检查是否存在JNI（Java Native Interface）代码中未释放的本地资源，比如本地内存分配、文件句柄、网络连接等，这些都是常见的堆外内存泄露源。
+            * 使用操作系统的工具，比如Linux下的pmap、top、vmstat等，来监控进程的内存使用情况，找出堆外内存增长较快的部分，从而定位堆外内存泄露的原因。
+    * PageCache和BufferCache
+        * ![](https://cdn.jsdelivr.net/gh/luckygalaxy666/img_bed@main/img/202508311640098.png)
+        * 用一句话来解释：PageCache用于缓存文件的页数据，buffercache用于缓存块设备（如磁盘）的块数据。
